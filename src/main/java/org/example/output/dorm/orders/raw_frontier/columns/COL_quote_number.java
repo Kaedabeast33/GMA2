@@ -1,0 +1,37 @@
+package org.example.output.dorm.orders.raw_frontier.columns;
+
+
+import org.example.gma.templates.ColumnTemplate;
+
+
+public class COL_quote_number extends ColumnTemplate {
+
+    public COL_quote_number() {
+        super(
+            "quote_number"
+,  // name
+            "col22461ac7-fa09-48f5-8a09-afa32a80f8e1"
+,  // columnId
+            "",  // description
+            new String[]{""},  // tags
+            true,  // isNullable
+            true,  // isEditable
+            false,  // isUnique
+            false,  // isRequired
+            "VARCHAR(255)"
+,  // type
+            "",  // defaultValue
+            new String[]{"default"},  // columnGroups
+            false,  // isUniqueIdentifier
+            new String[]{""},  // uniqueIdentifierGroups
+            false,  // isIndex
+            new String[]{""},  // indexGroups
+            null,  // referenceColumns
+            java.lang.String.class,  // fieldType
+            org.example.CommonValues.DefaultKdbConverter.class  // kdbConverter
+
+
+        );
+    }
+
+}
