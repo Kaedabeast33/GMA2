@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ public class RawAsapVoice {
     @KdbColumn(name = "account_number")
     private String accountNumber;
 
+    @KdbIndex(indexGroups = {"order_id_idx"})
     @KdbColumn(name = "asap_order_id")
     private String asapOrderId;
 
@@ -31,6 +33,7 @@ public class RawAsapVoice {
     @KdbColumn(name = "city")
     private String city;
 
+    @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "create_time")
     private LocalDateTime createTime;
 
@@ -67,6 +70,7 @@ public class RawAsapVoice {
     @KdbColumn(name = "order_reference_id")
     private String orderReferenceId;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "order_status")
     private String orderStatus;
 
@@ -91,6 +95,7 @@ public class RawAsapVoice {
     @KdbColumn(name = "sales_person_name")
     private String salesPersonName;
 
+    @KdbIndex(indexGroups = {"username_idx"})
     @KdbColumn(name = "sales_person_username")
     private String salesPersonUsername;
 

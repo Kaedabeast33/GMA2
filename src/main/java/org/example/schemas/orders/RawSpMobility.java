@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class RawSpMobility {
     @KdbColumn(name = "employee_id")
     private String employeeId;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {3})
     @KdbColumn(name = "line")
     private String line;
 
@@ -57,15 +59,18 @@ public class RawSpMobility {
     @KdbColumn(name = "line_provider")
     private String lineProvider;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "line_status")
     private String lineStatus;
 
     @KdbColumn(name = "line_type")
     private String lineType;
 
+    @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "order_date")
     private LocalDateTime orderDate;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {1})
     @KdbColumn(name = "order_number")
     private String orderNumber;
 
@@ -87,6 +92,7 @@ public class RawSpMobility {
     @KdbColumn(name = "street_address")
     private String streetAddress;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {2})
     @KdbColumn(name = "wireless_order_number")
     private String wirelessOrderNumber;
 

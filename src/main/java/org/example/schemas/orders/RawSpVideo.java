@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -48,9 +49,11 @@ public class RawSpVideo {
     @KdbColumn(name = "employee_id")
     private String employeeId;
 
+    @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "order_date")
     private LocalDateTime orderDate;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {1})
     @KdbColumn(name = "order_id")
     private String orderId;
 
@@ -84,6 +87,7 @@ public class RawSpVideo {
     @KdbColumn(name = "video_install_date")
     private LocalDateTime videoInstallDate;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {2})
     @KdbColumn(name = "video_order_number")
     private String videoOrderNumber;
 
@@ -93,6 +97,7 @@ public class RawSpVideo {
     @KdbColumn(name = "video_provider")
     private String videoProvider;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "video_status")
     private String videoStatus;
 

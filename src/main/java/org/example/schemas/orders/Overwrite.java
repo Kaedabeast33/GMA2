@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ public class Overwrite {
     @KdbColumn(name = "my_row_id")
     private Long myRowId;
 
-    @KdbColumn(name = "id")
+    @KdbColumn(name = "id",isNullable = false)
     private Long id;
 
     @KdbColumn(name = "account_number")
@@ -80,15 +81,18 @@ public class Overwrite {
     @KdbColumn(name = "mdu_d2d")
     private String mduD2d;
 
+    @KdbIndex(indexGroups = {"idx_mobile"})
     @KdbColumn(name = "mobile_number")
     private String mobileNumber;
 
     @KdbColumn(name = "order_date")
     private LocalDateTime orderDate;
 
+    @KdbIndex(indexGroups = {"idx_order_id"})
     @KdbColumn(name = "order_id")
     private String orderId;
 
+    @KdbIndex(indexGroups = {"idx_order_number"})
     @KdbColumn(name = "order_number")
     private String orderNumber;
 
@@ -167,6 +171,7 @@ public class Overwrite {
     @KdbColumn(name = "unit_weighted_net")
     private Double unitWeightedNet;
 
+    @KdbIndex(indexGroups = {"idx_db_id"})
     @KdbColumn(name = "db_id")
     private String dbId;
 

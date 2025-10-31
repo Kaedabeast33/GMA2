@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -60,6 +61,7 @@ public class RawSpInternet {
     @KdbColumn(name = "internet_install_date")
     private LocalDateTime internetInstallDate;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {2})
     @KdbColumn(name = "internet_order_number")
     private String internetOrderNumber;
 
@@ -72,12 +74,15 @@ public class RawSpInternet {
     @KdbColumn(name = "internet_provider")
     private String internetProvider;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "internet_status")
     private String internetStatus;
 
+    @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "order_date")
     private LocalDateTime orderDate;
 
+    @KdbIndex(indexGroups = {"order_id_idx"},order = {1})
     @KdbColumn(name = "order_id")
     private String orderId;
 

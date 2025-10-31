@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -62,6 +63,7 @@ public class RawLumosVideo {
     @KdbColumn(name = "partner_reference_id")
     private String partnerReferenceId;
 
+    @KdbIndex(indexGroups = {"order_id_idx"})
     @KdbColumn(name = "pops_order_id")
     private String popsOrderId;
 

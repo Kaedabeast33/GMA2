@@ -37,7 +37,7 @@ public class RawMetronet {
     @KdbColumn(name = "lcp")
     private String lcp;
 
-    @KdbIndex(indexGroups = {"sub_id_order_date_idx","order_status_idx"},order = {2,1})
+    @KdbIndex(indexGroups = {"sub_id_order_date_idx","create_time_idx"},order = {2,1})
     @KdbColumn(name = "order_date_internet")
     private LocalDateTime orderDateInternet;
 
