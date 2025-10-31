@@ -151,22 +151,41 @@ public class GmaChecker {
     }
 
     private void askContinueCol(Scanner scanner, String columnName, String type, String changeType, String tableName,ColumnJson col) {
-        String replace;
+        String replace=null;
+        String insert=null;;
         switch (type) {
             case "type" -> {
                 replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s;" + RESET, tableName, columnName, changeType);
-                System.out.println("\n" + replace);
+
             }
             case "isNullable" -> {
                 if(!col.isNullable()) replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s not null;" + RESET, tableName, columnName, col.getType());
                 else replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s null;" + RESET, tableName, columnName, col.getType());
-                System.out.println("\n" + replace);
+
             }
-            default -> {
+            case "column DB" -> {
+                replace = String.format(ITALIC + "ALTER TABLE %s DROP COLUMN `%s`;" + RESET, tableName, columnName);
+
+            }
+            case "column IDE" -> {
+                String columnDef = String.format("`%s` %s %s %s", columnName, col.getType(), col.isNullable() ? "NULL" : "NOT NULL",col.isUnique()? "UNIQUE":"");
+//                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
+                insert = String.format(ITALIC + "ALTER TABLE %s ADD COLUMN %s;" + RESET, tableName, columnDef);
+
+            }
+            case "isUnique" -> {
+
+//                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
+                insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT UNIQUE `%s    ;" + RESET, tableName, col.getName());
+
+            }
+                default -> {
                 System.out.println("\"No action for this type.\"");
                 return;
             }
         }
+        if(replace!=null)System.out.println("\n" + replace);
+        if(insert!=null)System.out.println("\n" + insert);
 
         System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
         String input = scanner.nextLine().trim().toUpperCase();
@@ -686,7 +705,7 @@ public class GmaChecker {
 
             if (colDb == null) {
                 ColCheck colCheck = new ColCheck(col.getName(),col.getType());
-                colCheck.setType("column");
+                colCheck.setType("column IDE");
                 colCheck.setDifference("IDE: " + col.getName() + ", DB: null");
                 colCheckList.add(colCheck);
             } else {
@@ -716,6 +735,7 @@ public class GmaChecker {
                     ColCheck colCheck = new ColCheck(col.getName(),col.getType());
                     colCheck.setType("isUnique");
                     colCheck.setDifference("IDE: " + col.isUnique() + ", DB: " + colDb.isUnique());
+                    colCheck.setColumn(col);
                     colCheckList.add(colCheck);
                 }
                 if (col.isPrimaryKey() != colDb.isPrimaryKey()) {
@@ -735,7 +755,7 @@ public class GmaChecker {
         for (ColumnJson c : remaining) {
             List<ColCheck> remainingColCheckList = new ArrayList<>();
             ColCheck colCheck = new ColCheck(c.getName(),c.getType());
-            colCheck.setType("column");
+            colCheck.setType("column DB");
             colCheck.setDifference("IDE: null, DB: " + c.getName());
             remainingColCheckList.add(colCheck);
             columnCheckMap.put(c.getName(), remainingColCheckList);

@@ -176,7 +176,7 @@ public class TableJson {
                         List<IndexMapObject> value;
                         String name;
 
-                        if (kdbIndex== null || kdbIndex.indexGroups().length == 0||kdbReference!=null||kdbKey!=null) {
+                        if (kdbIndex== null || kdbIndex.indexGroups().length == 0||(kdbReference!=null && kdbIndex==null)||kdbKey!=null) {
                             name = kdbPrimaryKey!=null?"PRIMARY_"+kdbColumn.name():kdbReference!=null? kdbColumn.name() +"_fk": kdbKey!=null?kdbColumn.name()+"_key": kdbColumn.name() + "_idx";
                             if ((value = indexMap.get(name)) == null) {
                                 value = new ArrayList<>();

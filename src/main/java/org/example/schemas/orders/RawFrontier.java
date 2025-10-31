@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ public class RawFrontier {
     @KdbColumn(name = "agent_last_name")
     private String agentLastName;
 
+    @KdbIndex(indexGroups = {"raw_frontier_insert_index"},order = {1})
     @KdbColumn(name = "agent_user_id")
     private String agentUserId;
 
@@ -101,6 +103,7 @@ public class RawFrontier {
     @KdbColumn(name = "order_due_date")
     private LocalDateTime orderDueDate;
 
+    @KdbIndex(indexGroups = {"order_date_idx","raw_frontier_insert_index"},order = {1,3})
     @KdbColumn(name = "order_received_date")
     private LocalDateTime orderReceivedDate;
 
@@ -110,6 +113,7 @@ public class RawFrontier {
     @KdbColumn(name = "order_stage_desc")
     private String orderStageDesc;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "order_status")
     private String orderStatus;
 
@@ -146,6 +150,7 @@ public class RawFrontier {
     @KdbColumn(name = "pos_id")
     private String posId;
 
+    @KdbIndex(indexGroups = {"raw_frontier_insert_index"},order = {2})
     @KdbColumn(name = "quote_number")
     private String quoteNumber;
 

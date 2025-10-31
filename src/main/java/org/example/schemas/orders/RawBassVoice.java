@@ -1,8 +1,10 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
+import org.example.CommonValues.ValueTypes;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -19,12 +21,14 @@ public class RawBassVoice {
     @KdbColumn(name = "account_number")
     private String accountNumber;
 
+    @KdbIndex(indexGroups = {"order_id_idx"})
     @KdbColumn(name = "bass_order_id")
     private String bassOrderId;
 
     @KdbColumn(name = "city")
     private String city;
 
+    @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "create_time")
     private LocalDateTime createTime;
 
@@ -49,19 +53,20 @@ public class RawBassVoice {
     @KdbColumn(name = "local_quantity")
     private Double localQuantity;
 
-    @KdbColumn(name = "master_agent_id")
+    @KdbColumn(name = "master_agent_id",type = ValueTypes.TEXT)
     private String masterAgentId;
 
-    @KdbColumn(name = "master_agent_name")
+    @KdbColumn(name = "master_agent_name",type = ValueTypes.TEXT)
     private String masterAgentName;
 
     @KdbColumn(name = "order_number")
     private String orderNumber;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "order_status")
     private String orderStatus;
 
-    @KdbColumn(name = "partner_reference_id")
+    @KdbColumn(name = "partner_reference_id",type = ValueTypes.TEXT)
     private String partnerReferenceId;
 
     @KdbColumn(name = "sales_person_id")
@@ -70,6 +75,7 @@ public class RawBassVoice {
     @KdbColumn(name = "sales_person_name")
     private String salesPersonName;
 
+    @KdbIndex(indexGroups = {"username_idx"})
     @KdbColumn(name = "sales_persons_username")
     private String salesPersonsUsername;
 
@@ -88,7 +94,7 @@ public class RawBassVoice {
     @KdbColumn(name = "sub_agent_username")
     private String subAgentUsername;
 
-    @KdbColumn(name = "subagent_id")
+    @KdbColumn(name = "subagent_id",type = ValueTypes.TEXT)
     private String subAgentId;
 
     @KdbColumn(name = "type_of_sale")

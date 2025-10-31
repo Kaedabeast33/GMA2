@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ public class RawVexus {
     @KdbColumn(name = "db_id")
     private String dbId;
 
+    @KdbIndex(indexGroups = {"acct_order_num_idx"},order = {1})
     @KdbColumn(name = "account_number")
     private String accountNumber;
 
@@ -62,6 +64,7 @@ public class RawVexus {
     @KdbColumn(name = "customer_status")
     private String customerStatus;
 
+    @KdbIndex(indexGroups = {"date_entered_idx"})
     @KdbColumn(name = "date_entered")
     private LocalDateTime dateEntered;
 
@@ -77,6 +80,7 @@ public class RawVexus {
     @KdbColumn(name = "home_phone")
     private String homePhone;
 
+    @KdbIndex(indexGroups = {"house_idx"})
     @KdbColumn(name = "house_record_number")
     private String houseRecordNumber;
 
@@ -86,12 +90,14 @@ public class RawVexus {
     @KdbColumn(name = "market_ready_date")
     private LocalDateTime marketReadyDate;
 
+    @KdbIndex(indexGroups = {"acct_order_num_idx"},order = {2})
     @KdbColumn(name = "order_number")
     private String orderNumber;
 
     @KdbColumn(name = "order_sales_type")
     private String orderSalesType;
 
+    @KdbIndex(indexGroups = {"order_status_idx"})
     @KdbColumn(name = "order_status")
     private String orderStatus;
 
@@ -104,6 +110,7 @@ public class RawVexus {
     @KdbColumn(name = "sales_group")
     private String salesGroup;
 
+    @KdbIndex(indexGroups = {"sales_number_idx"})
     @KdbColumn(name = "sales_number")
     private Integer salesNumber;
 

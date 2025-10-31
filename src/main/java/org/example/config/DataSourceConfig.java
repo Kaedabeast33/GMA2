@@ -164,12 +164,12 @@ public class DataSourceConfig {
 //        schema2.initKdbManager();
 
         return List.of(
-//                schema,
-//                schema2,
-//                schema3,
-//                schema4,
-                schema5
-//                schema6
+                schema,
+                schema2,
+                schema3,
+                schema4,
+                schema5,
+                schema6
                 );
     }
 

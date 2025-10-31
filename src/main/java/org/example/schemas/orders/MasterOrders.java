@@ -1,6 +1,7 @@
 package org.example.schemas.orders;
 
 import org.example.Annotations.KdbColumn;
+import org.example.Annotations.KdbIndex;
 import org.example.Annotations.KdbPrimaryKey;
 import org.example.Annotations.KdbTable;
 import org.springframework.stereotype.Component;
@@ -20,12 +21,15 @@ public class MasterOrders {
     @KdbColumn(name = "my_row_id")
     private Long myRowId;
 
+    @KdbIndex(indexGroups = {"idx_master_orders_db_id"})
     @KdbColumn(name = "db_id")
     private String dbId;
 
+    @KdbIndex(indexGroups = {"idx_order_date"})
     @KdbColumn(name = "order_date")
     private LocalDateTime orderDate;
 
+    @KdbIndex(indexGroups = {"idx_employee_id"})
     @KdbColumn(name = "employee_id")
     private String employeeId;
 
@@ -122,19 +126,19 @@ public class MasterOrders {
     @KdbColumn(name = "commission")
     private Double commission;
 
-    @KdbColumn(name = "unit_gross")
+    @KdbColumn(name = "unit_gross",isNullable = false)
     private Integer unitGross;
 
-    @KdbColumn(name = "unit_net")
+    @KdbColumn(name = "unit_net",isNullable = false)
     private Integer unitNet;
 
-    @KdbColumn(name = "unit_weighted_gross")
+    @KdbColumn(name = "unit_weighted_gross",isNullable = false)
     private Double unitWeightedGross;
 
-    @KdbColumn(name = "unit_weighted_net")
+    @KdbColumn(name = "unit_weighted_net",isNullable = false)
     private Double unitWeightedNet;
 
-    @KdbColumn(name = "addon_count")
+    @KdbColumn(name = "addon_count",isNullable = false)
     private Long addonCount;
 
     @KdbColumn(name = "carrier_system")
@@ -146,15 +150,19 @@ public class MasterOrders {
     @KdbColumn(name = "order_method")
     private String orderMethod;
 
+    @KdbIndex(indexGroups = {"idx_ref_1"})
     @KdbColumn(name = "mo_reconciliation_ref_id")
     private String moReconciliationRefId;
 
+    @KdbIndex(indexGroups = {"idx_ref_2"})
     @KdbColumn(name = "mo_reconciliation_ref_id_2")
     private String moReconciliationRefId2;
 
+    @KdbIndex(indexGroups = {"idx_ref_3"})
     @KdbColumn(name = "mo_reconciliation_ref_id_3")
     private String moReconciliationRefId3;
 
+    @KdbIndex(indexGroups = {"idx_ref_4"})
     @KdbColumn(name = "mo_reconciliation_ref_id_4")
     private String moReconciliationRefId4;
 
