@@ -1,0 +1,24 @@
+package org.example.bank.Annotations;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
+public @interface KdbQuery {
+    String name();
+
+    String description();
+
+    String[] tags() default {};
+
+    String queryType();
+
+    String[] queryGroups() default {};
+
+    int[] queryGroupsOrder() default {1};
+
+
+    String[] querySet() default {};
+
+
+}
