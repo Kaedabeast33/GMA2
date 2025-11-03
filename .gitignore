@@ -1,5 +1,6 @@
 target/
-.json
+*.json
+src/main/java/org/example/output/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -37,4 +38,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
-src/main/java/org/example/output/dorm
+src/main/java/org/output/dorm

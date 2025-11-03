@@ -4,11 +4,10 @@ package org.example;
 //import org.example.dorm.employee_alignment.align_emp_upline_history.TAB_align_emp_upline_history;
 
 
-
+import org.example.service.Actions;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-
 import org.springframework.context.ApplicationContext;
 
 @EnableConfigurationProperties
@@ -23,6 +22,7 @@ public class Main {
         actions.buildClasses();
         actions.getDbJson();
         actions.analyzeJson();
+
 
     }
 }
