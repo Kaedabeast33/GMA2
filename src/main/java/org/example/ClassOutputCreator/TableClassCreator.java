@@ -1,6 +1,5 @@
 package org.example.ClassOutputCreator;
 
-
 import org.example.JsonBuilder.json.ma.tables.QueryJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
@@ -29,20 +28,20 @@ public class TableClassCreator {
         this.name = table.getName();
 
         // Make a copy so each table has its own unique directory path
-        this.curDir = new java.util.ArrayList<>(curDir);
+        this.curDir = new ArrayList<>(curDir);
         this.curDir.add(name); // e.g. add table name
 
 //        System.out.println(curDir+" CURDIR");
 
-        this.pkgDir = new java.util.ArrayList<>(pkgDir);
+        this.pkgDir = new ArrayList<>(pkgDir);
         this.pkgDir.add(name);
 
 //        System.out.println("creating Table for " + name);
-//        System.out.println("package name = "+String.join(".",pkgDir));
-        ;
+//        System.out.println("        ;
 
-        this.columnList = new java.util.ArrayList<>();
-        this.queryList = new java.util.ArrayList<>();
+        this.columnList = new ArrayList<>();
+        this.queryList = new ArrayList<>();
+
 
         for (int i = 0; i < table.getColumns().length; i++) {
 

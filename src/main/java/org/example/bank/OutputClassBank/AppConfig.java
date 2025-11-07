@@ -19,8 +19,8 @@ public class AppConfig {
     }
 
     public static String getJavaDir() {
-        System.out.println("Java Dir: " + properties.getProperty("app.javaDir", "org.example"));
-        return properties.getProperty("app.javaDir", "org.example"); // default value
+        System.out.println("Java Dir: " + properties.getProperty("app.javaDir", ""));
+        return properties.getProperty("app.javaDir", ""); // default value
     }
 
     public static String getTemplateDir() {

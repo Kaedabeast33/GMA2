@@ -18,7 +18,7 @@ public class StagingAgMoMc {
     @KdbPrimaryKey
     private Long myRowId;
 
-    @KdbIndex(indexGroups = {"idx_mo_db_id"})
+    @KdbIndex(indexGroups = {"idx_staging_ag_mo_mc_mo_db_id"})
     @KdbColumn(name = "mo_db_id")
     private String moDbId;
 
@@ -28,6 +28,7 @@ public class StagingAgMoMc {
     @KdbColumn(name = "mo_account_number")
     private String moAccountNumber;
 
+    @KdbIndex(indexGroups = {"idx_staging_ag_mo_mc_mc_db_id"})
     @KdbColumn(name = "mc_db_id")
     private String mcDbId;
 

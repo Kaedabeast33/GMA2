@@ -1,6 +1,5 @@
 package org.example.inputs.schemas.productalignment;
 
-
 import org.example.bank.Annotations.*;
 
 @KdbTable(description = "classifies addon characteristics for revenue alignment", name = "align_addon_classification", tags = {"airtable", "product alignment", "addon classification"}, type = "")

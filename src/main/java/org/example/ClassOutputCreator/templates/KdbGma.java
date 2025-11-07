@@ -1,6 +1,5 @@
 package org.example.ClassOutputCreator.templates;
 
-
 import org.springframework.stereotype.Component;
 
 import java.util.List;

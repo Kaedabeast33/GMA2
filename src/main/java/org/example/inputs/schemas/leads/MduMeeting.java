@@ -1,6 +1,5 @@
 package org.example.inputs.schemas.leads;
 
-
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

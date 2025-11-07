@@ -94,6 +94,7 @@ public class DataSourceConfig {
         schema.setJdbcConnectionUrl(propertiesEmployeealignment().getUrl());
         schema.setUsername(propertiesEmployeealignment().getUsername());
         schema.setPassword(propertiesEmployeealignment().getPassword());
+        schema.setTransactionManagerBeanName(propertiesEmployeealignment().getTransactionBeanName());
 
         schema.setJavaFolderPath(propertiesEmployeealignment().getJavaFolderPath());
 
@@ -109,6 +110,7 @@ public class DataSourceConfig {
         schema2.setUsername(propertiesAirtable().getUsername());
         schema2.setPassword(propertiesAirtable().getPassword());
         schema2.setJavaFolderPath(propertiesAirtable().getJavaFolderPath());
+        schema2.setTransactionManagerBeanName(propertiesAirtable().getTransactionBeanName());
 
         MAConfigTemplate schema3 = new MAConfigTemplate();
         schema3.setName(propertiesCommissions().getSchema());
@@ -120,6 +122,7 @@ public class DataSourceConfig {
         schema3.setUsername(propertiesCommissions().getUsername());
         schema3.setPassword(propertiesCommissions().getPassword());
         schema3.setJavaFolderPath(propertiesCommissions().getJavaFolderPath());
+        schema3.setTransactionManagerBeanName(propertiesCommissions().getTransactionBeanName());
 
         MAConfigTemplate schema4 = new MAConfigTemplate();
         schema4.setName(propertiesLeads().getSchema());
@@ -129,9 +132,9 @@ public class DataSourceConfig {
         schema4.setName("leads");
         schema4.setJdbcConnectionUrl(propertiesLeads().getUrl());
         schema4.setUsername(propertiesLeads().getUsername());
-
         schema4.setPassword(propertiesLeads().getPassword());
         schema4.setJavaFolderPath(propertiesLeads().getJavaFolderPath());
+        schema4.setTransactionManagerBeanName(propertiesLeads().getTransactionBeanName());
 
         MAConfigTemplate schema5 = new MAConfigTemplate();
         schema5.setName(propertiesOrders().getSchema());
@@ -143,6 +146,7 @@ public class DataSourceConfig {
         schema5.setUsername(propertiesOrders().getUsername());
         schema5.setPassword(propertiesOrders().getPassword());
         schema5.setJavaFolderPath(propertiesOrders().getJavaFolderPath());
+        schema5.setTransactionManagerBeanName(propertiesOrders().getTransactionBeanName());
 
         MAConfigTemplate schema6 = new MAConfigTemplate();
         schema6.setName(propertiesReports().getSchema());
@@ -154,6 +158,7 @@ public class DataSourceConfig {
         schema6.setUsername(propertiesReports().getUsername());
         schema6.setPassword(propertiesReports().getPassword());
         schema6.setJavaFolderPath(propertiesReports().getJavaFolderPath());
+        schema6.setTransactionManagerBeanName(propertiesReports().getTransactionBeanName());
 
 
 //        schema2.initKdbManager();

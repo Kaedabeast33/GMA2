@@ -1,6 +1,5 @@
 package org.example.inputs.schemas.commissions;
 
-
 import org.example.bank.Annotations.*;
 
 @KdbTable(

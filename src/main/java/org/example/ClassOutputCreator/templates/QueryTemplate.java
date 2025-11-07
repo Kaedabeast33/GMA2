@@ -58,8 +58,7 @@ public abstract class QueryTemplate {
     }
 
 
-    //package org.example.Annotations;
-    //
+    //    //
     //public @interface KdbQuery {
     //    String name();
     //

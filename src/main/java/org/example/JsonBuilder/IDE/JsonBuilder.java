@@ -1,20 +1,21 @@
 package org.example.JsonBuilder.IDE;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
 import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.ClassOutputCreator.templates.MAConfigTemplate;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.QueryGroupJson;
-import org.example.bank.Annotations.*;
-import org.example.bank.OutputClassBank.KDBContext;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.BaseQueryJson;
 import org.example.JsonBuilder.json.ma.tables.ProcedureJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
+import org.example.bank.Annotations.*;
 import org.example.bank.KdbConverter.ClassTypeAdapter;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -64,7 +65,7 @@ public class JsonBuilder {
                 .create();
     }
 
-    static String toPakcage = "/src/main/java/";
+    static String toPakcage = "src/main/java/";
 
 
     public GMAJson buildJsonOfGma(KdbGma gma) throws InvocationTargetException, IllegalAccessException {
@@ -149,8 +150,7 @@ public class JsonBuilder {
         try {
             packagePath = packageName.replace('/', '.');
         } catch (Exception e) {
-            System.out.println("Error replacing slashes in package name: " + e.getMessage());
-            System.out.println("In " + packageName);
+            System.out.println("Error replacing slashes In " + packageName);
             throw new RuntimeException(e);
         }
 

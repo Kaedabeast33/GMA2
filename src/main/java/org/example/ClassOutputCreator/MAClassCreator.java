@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.example.ClassOutputCreator.ClassCreator.*;
-import static org.example.ClassOutputCreator.GMAClassCreator.generatePackageDeclaration;
+import static org.example.ClassOutputCreator.GMAClassCreator.*;
 import static org.example.ClassOutputCreator.TableClassCreator.generateContextImport;
 
 public class MAClassCreator {
@@ -60,11 +60,65 @@ public class MAClassCreator {
         Files.writeString(path, "", StandardOpenOption.CREATE);
 
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"MATemplate", "TableTemplate"}), path, false);
+        generatePomImports(path,List.of("org.springframework.transaction.annotation.Transactional","jakarta.persistence.EntityManager","java.text.ParseException", "java.util.List"));
+        generateBankImports(path, List.of("EntityInterface"));
         generateContextImport(path);
         generateMaFields(ma, gmaName, path);
         generateMaTables(ma, path);
+        generateMaSaveAll(ma,path);
 
         Files.writeString(path, "\n}", StandardOpenOption.APPEND); // Close the class definitionKDBCO
+
+    }
+
+    private void generateMaSaveAll(MAJson ma, Path path) {
+        String initial;
+
+        if( ma.getTransactionManagerBeanName()!=null && ma.getTransactionManagerBeanName().isEmpty() ) {
+             initial = """
+                        @Transactional
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings) throws ParseException {
+                            context.saveAll(table, entities, entityManager, upsertStrings);
+                        }
+                        
+                        @Transactional
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager) throws ParseException {
+                            context.saveAll(table, entities,  entityManager);
+                        }
+                    """;
+        }
+        else if(ma.getTransactionManagerBeanName().equalsIgnoreCase("transactionless")){
+            initial = """
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings) throws ParseException {
+                            context.saveAllTransactionless(table,entities,user,pass,jdbcUrl,upsertStrings);
+                        }
+                        
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl) throws ParseException {
+                            context.saveAllTransactionless(table,entities,user,pass,jdbcUrl);
+                        }
+                    """;
+        }
+
+        else {
+
+            initial = String.format("""
+                        @Transactional(transactionManager = "%s")
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException {
+                            context.saveAll(table, entities, entityManager, upsertStrings);
+                       }
+                            
+                        @Transactional(transactionManager = "%s")
+                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager) throws ParseException {
+                            context.saveAll(table, entities,  entityManager);
+                        }
+                    """, ma.getTransactionManagerBeanName(), ma.getTransactionManagerBeanName());
+        }
+
+        try {
+            Files.writeString(path, initial, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 

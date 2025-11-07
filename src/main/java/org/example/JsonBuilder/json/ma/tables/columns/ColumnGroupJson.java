@@ -1,6 +1,5 @@
 package org.example.JsonBuilder.json.ma.tables.columns;
 
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

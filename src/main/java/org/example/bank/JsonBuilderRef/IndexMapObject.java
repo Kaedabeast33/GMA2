@@ -1,6 +1,5 @@
 package org.example.bank.JsonBuilderRef;
 
-
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.GroupDTO;
 

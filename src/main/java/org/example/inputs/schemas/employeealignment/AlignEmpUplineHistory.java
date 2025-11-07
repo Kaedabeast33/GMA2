@@ -1,6 +1,5 @@
 package org.example.inputs.schemas.employeealignment;
 
-
 import org.example.bank.commonValues.TriggerType;
 import org.example.bank.Annotations.*;
 import java.time.LocalDateTime;

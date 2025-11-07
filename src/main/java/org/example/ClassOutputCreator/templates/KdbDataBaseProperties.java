@@ -1,6 +1,5 @@
 package org.example.ClassOutputCreator.templates;
 
-
 public class KdbDataBaseProperties {
     private String url;
     private String username;
@@ -9,6 +8,7 @@ public class KdbDataBaseProperties {
     private String javaFolderPath;
     private String driverClassName;
     private String dialect;
+    private String transactionBeanName;
 
 
     public String getDriverClassName() {
@@ -66,5 +66,13 @@ public class KdbDataBaseProperties {
 
     public void setJavaFolderPath(String javaFolderPath) {
         this.javaFolderPath = javaFolderPath;
+    }
+
+    public String getTransactionBeanName() {
+        return transactionBeanName;
+    }
+
+    public void setTransactionBeanName(String transactionBeanName) {
+        this.transactionBeanName = transactionBeanName;
     }
 }

@@ -1,6 +1,5 @@
 package org.example.service;
 
-
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
@@ -284,7 +283,7 @@ public class GmaChecker {
             case "isUnique" -> {
 
 //                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
-                insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT UNIQUE `%s    ;" + RESET, tableName, col.getName());
+                insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT `%s` UNIQUE (%s);" + RESET, tableName,col.getName()+"_key", col.getName());
 
             }
             default -> {
@@ -806,6 +805,7 @@ public class GmaChecker {
 
             if (colDb == null) {
                 ColCheck colCheck = new ColCheck(col.getName(), col.getType());
+                colCheck.setColumn(col);
                 colCheck.setType("column IDE");
                 colCheck.setDifference("IDE: " + col.getName() + ", DB: null");
                 colCheckList.add(colCheck);

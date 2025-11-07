@@ -1,7 +1,10 @@
 package org.example.bank.OutputClassBank;
 
+import org.example.ClassOutputCreator.templates.UpsertTemplate;
+
 import java.text.ParseException;
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface EntityInterface {
 
@@ -24,6 +27,7 @@ public interface EntityInterface {
     //    List<String> getIndexes();
 //    String getIdName();
     String getDescription();
+    UpsertTemplate getUpsert();
 //    String getDependencies();
 
 }

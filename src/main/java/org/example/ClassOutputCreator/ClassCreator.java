@@ -1,8 +1,8 @@
 package org.example.ClassOutputCreator;
 
-
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
+import org.example.bank.OutputClassBank.AppConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +14,26 @@ import java.util.*;
 public class ClassCreator {
     static String workingDir = Paths.get("").toAbsolutePath().toString();
 
+
     public static void jsonToObjects(GMAJson gma) throws IOException {
-        String outputDir = workingDir + File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + "org" + File.separator + "example" + File.separator + "output";
+        String[] safeJavaDir = safeArray(AppConfig.getJavaDir().split("\\."));
+
+        StringBuilder outputDirBuilder = new StringBuilder(workingDir)
+                .append(File.separator)
+                .append("src")
+                .append(File.separator)
+                .append("main")
+                .append(File.separator)
+                .append("java");
+
+        for (String segment : safeJavaDir) {
+            outputDirBuilder.append(File.separator).append(segment);
+        }
+
+        outputDirBuilder.append(File.separator).append(AppConfig.getOutputDir());
+
+
+        String outputDir = outputDirBuilder.toString();
         Path dir = Path.of(outputDir, "dorm");
         if (Files.exists(dir)) {
             Files.walk(dir)
@@ -29,7 +47,7 @@ public class ClassCreator {
                     });
         }
 
-        List<String> currDir = new java.util.ArrayList<>(List.of(outputDir));
+        List<String> currDir = new ArrayList<>(List.of(outputDir));
 
         Map<String, List<String>> tableGroupsJsonMap = new TreeMap<>();
         Map<String, List<String>> groupColumnsJsonMap = new TreeMap<>();

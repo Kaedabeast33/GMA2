@@ -1,6 +1,5 @@
 package org.example.JsonBuilder.json.ma.tables.columns;
 
-
 import com.google.gson.Gson;
 
 import org.example.JsonBuilder.json.ref.RefColumnJson;
@@ -16,6 +15,7 @@ import java.util.UUID;
 
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
 import static org.example.bank.commonValues.ValueTypes.TYPE_MAP;
+
 
 public class ColumnJson {
     String name;

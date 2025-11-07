@@ -16,6 +16,8 @@ public class MAJson {
     String[] tags;
     String maId = "ma" + UUID.randomUUID();
     String javaFolderPath;
+    String transactionManagerBeanName;
+    String uploadType;
 
     Map<String, String> maSettings;
     TableJson[] tables;
@@ -31,7 +33,17 @@ public class MAJson {
         this.jdbcUrl = db.getJdbcConnectionUrl();
         this.user = db.getUsername();
         this.pass = db.getPassword();
+        this.transactionManagerBeanName = db.getTransactionManagerBeanName();
+//        this.uploadType = db.get();
 
+    }
+
+    public String getTransactionManagerBeanName() {
+        return transactionManagerBeanName;
+    }
+
+    public void setTransactionManagerBeanName(String transactionManagerBeanName) {
+        this.transactionManagerBeanName = transactionManagerBeanName;
     }
 
     public String getJdbcUrl() {

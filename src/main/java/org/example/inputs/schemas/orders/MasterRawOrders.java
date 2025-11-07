@@ -168,8 +168,7 @@ public class MasterRawOrders {
         return """
                 BEGIN
                     -- SECOND BLOCK
-                    -- Additional nulling if product class or package changes
-                    IF OLD.package_name != NEW.package_name THEN
+                    -- Additional nulling if product class or                     IF OLD.package_name != NEW.package_name THEN
                         SET NEW.mo_reconciliation_ref_id = NULL;
                     END IF;
                 

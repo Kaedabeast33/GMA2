@@ -1,6 +1,5 @@
 package org.example.ClassOutputCreator.templates;
 
-
 abstract class ProcedureTemplate extends QueryTemplate {
 
 
@@ -9,8 +8,7 @@ abstract class ProcedureTemplate extends QueryTemplate {
     }
 
 
-    //package org.example.Annotations;
-    //
+    //    //
     //public @interface KdbProcedure {
     //    String name();
     //

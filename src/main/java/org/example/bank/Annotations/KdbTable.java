@@ -12,4 +12,6 @@ public @interface KdbTable {
     String[] tags() default {};
 
     String type();
+
+    String uploadType() default "default";
 }

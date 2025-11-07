@@ -13,6 +13,8 @@ public class MAConfigTemplate {
     KdbManager kdbManager;
     String username;
     String password;
+    String transactionManagerBeanName;
+
 
     public String getJavaFolderPath() {
 //        System.out.println("javaFolderPath:"+javaFolderPath);
@@ -53,6 +55,14 @@ public class MAConfigTemplate {
 //        System.out.println(jdbcConnectionUrl);
         kdbManager = new KdbManager(username, password, jdbcConnectionUrl);
 
+    }
+
+    public String getTransactionManagerBeanName() {
+        return transactionManagerBeanName;
+    }
+
+    public void setTransactionManagerBeanName(String transactionManagerBeanName) {
+        this.transactionManagerBeanName = transactionManagerBeanName;
     }
 
     public String getJdbcConnectionUrl() {

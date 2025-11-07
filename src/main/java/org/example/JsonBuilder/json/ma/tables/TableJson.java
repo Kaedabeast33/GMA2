@@ -1,6 +1,5 @@
 package org.example.JsonBuilder.json.ma.tables;
 
-
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnGroupJson;
 import org.example.JsonBuilder.json.ma.tables.columns.IndexJson;
 import org.example.JsonBuilder.json.ma.tables.columns.UniqueColumnGroupJson;
@@ -18,6 +17,7 @@ public class TableJson {
     String[] tags;
     String tableId = "tab" + UUID.randomUUID();
     String tableType;
+    String tableUploadType;
 
     DependencyJson[] dependencies;
 
@@ -32,6 +32,8 @@ public class TableJson {
     CustomContraintJson[] customConstraints;
     UniqueKeyJson[] uniqueKeys;
 
+
+
     private transient Map<String, List<BaseQueryJson>> queriesMap = new HashMap<>();
 
 
@@ -41,6 +43,7 @@ public class TableJson {
         this.description = tableData.description();
         this.tags = tableData.tags();
         this.tableType = tableData.type();
+        this.tableUploadType = tableData.uploadType();
 
         List<FieldsComb> fields = table.getFieldsComb();
         List<MethodsComb> methods = table.getMethodsComb();

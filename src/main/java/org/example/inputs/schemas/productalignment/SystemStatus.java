@@ -20,7 +20,7 @@ public class SystemStatus {
     @KdbColumn(name = "record_id")
     private String recordId;
 
-    @KdbColumn(name = "system_status")
+    @KdbColumn(name = "system_status",unique = true)
     private String systemStatus;
 
     @KdbColumn(name = "translated_status")

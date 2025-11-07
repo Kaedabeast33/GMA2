@@ -1,7 +1,6 @@
 package org.example.ClassOutputCreator;
 
 
-
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
 import java.io.File;
@@ -49,7 +48,7 @@ public class ColumnClassCreator {
         Files.createDirectories(path.getParent());
         Files.writeString(path, "", StandardOpenOption.CREATE);
 
-        List<String> childDirs = new java.util.ArrayList<>();
+        List<String> childDirs = new ArrayList<>();
         pkgDir.add("columns");
         generatePackageDeclaration(pkgDir, childDirs, new ArrayList<>(List.of(new String[]{"ColumnTemplate"})), path, false);
 

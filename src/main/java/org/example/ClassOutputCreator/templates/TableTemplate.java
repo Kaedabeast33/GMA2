@@ -1,7 +1,8 @@
 package org.example.ClassOutputCreator.templates;
 
-
 import org.example.bank.OutputClassBank.EntityInterface;
+
+import java.util.function.Supplier;
 
 
 public abstract class TableTemplate implements EntityInterface {
@@ -11,6 +12,8 @@ public abstract class TableTemplate implements EntityInterface {
     protected final String tableId;
     protected final String gmaName;
     protected final String maName;
+    UpsertTemplate upsert=new UpsertTemplate();
+//    protected final String upsert;
 
 
     public TableTemplate(String name, String description, String[] tag, String tableId, String gmaName, String maName) {
@@ -20,6 +23,7 @@ public abstract class TableTemplate implements EntityInterface {
         this.tableId = tableId;
         this.gmaName = gmaName;
         this.maName = maName;
+
 
     }
 
@@ -55,6 +59,15 @@ public abstract class TableTemplate implements EntityInterface {
 
     //    protected final  MATemplate m;
 
+
+    @Override
+    public UpsertTemplate getUpsert() {
+        return upsert;
+    }
+
+    public void setUpsert(UpsertTemplate upsert) {
+        this.upsert = upsert;
+    }
 
     public String getName() {
         return name;

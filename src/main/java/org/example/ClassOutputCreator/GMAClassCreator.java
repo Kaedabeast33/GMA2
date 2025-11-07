@@ -1,5 +1,6 @@
 package org.example.ClassOutputCreator;
 
+
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.bank.OutputClassBank.AppConfig;
@@ -27,6 +28,8 @@ public class GMAClassCreator {
 
     static String javaDir = AppConfig.getJavaDir();
     static String resourceDir = ".bank.OutputClassBank.";
+
+
     private static final String templateDir = AppConfig.getTemplateDir();
 
 
@@ -72,13 +75,39 @@ public class GMAClassCreator {
         }
 
 
-        generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"GMATemplate", "MATemplate"}), path, false);
+
+
+        generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"GMATemplate", "MATemplate",""}), path, false);
+
         generateContextImport(path);
         generateGmaFields(gma, path);
         generateGmaMas(gma, path);
 
 
     }
+
+    static void generatePomImports(Path path, List<String> imports) {
+
+        for( String importStr : imports){
+            try {
+                Files.writeString(path, "import " +importStr + ";\n", StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    static void generateBankImports(Path path, List<String> imports){
+        StringBuilder importDecleration = new StringBuilder();
+        for (String importStr : imports) {
+            importDecleration.append("import ").append(javaDir).append(".bank.OutputClassBank").append(".").append(importStr).append(";\n");
+        }
+        try {
+            Files.writeString(path, importDecleration + "\n", StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    };
 
 //    package cl.airtable.raw_k_airtable.columns;
 

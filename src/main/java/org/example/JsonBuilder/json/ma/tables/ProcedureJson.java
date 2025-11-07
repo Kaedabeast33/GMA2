@@ -1,6 +1,5 @@
 package org.example.JsonBuilder.json.ma.tables;
 
-
 import org.example.bank.Annotations.KdbProcedure;
 import org.example.JsonBuilder.json.ma.tables.columns.QueryGroupDTO;
 

@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.*;
 
 import static org.example.ClassOutputCreator.ClassCreator.getWorkingDirectory;
 import static org.example.ClassOutputCreator.ClassCreator.jsonToObjects;
@@ -51,25 +52,59 @@ public class Actions {
     KDBContext kdbContext = KDBContext.KDB_CONTEXT;
 
 
+
+
+
     public void mainRun() throws InvocationTargetException, IllegalAccessException, SQLException, IOException {
-        buildGmaContext();
-        buildClasses();
+        try (Scanner scanner = new Scanner(System.in)) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Scanner scanner = new Scanner(System.in);
+            try {
+                buildGmaContext();
 
-// Prompt the user for confirmation
-        System.out.println("Would you like to compare your IDE and DB tables (Y/N): ");
-        String input = scanner.nextLine().trim().toUpperCase();
+                // First input
+                System.out.println("Would you like to build classes (Y/N): ");
+                String input_0 = "N";
+                Future<String> future_0 = executor.submit(scanner::nextLine);
 
-// Validate input and execute actions based on the user's choice
-        if ("Y".equals(input)) {
-            getDbJson();
-            analyzeJson();
-            System.out.println("Actions completed successfully.");
-        } else if ("N".equals(input)) {
-            System.out.println("Skipping 'getDbJson' and 'analyzeJson'.");
-        } else {
-            System.out.println("Invalid input. Please restart the application and enter 'Y' or 'N'.");
+                try {
+                    input_0 = future_0.get(10, TimeUnit.SECONDS).trim().toUpperCase();
+                } catch (TimeoutException e) {
+                    System.out.println("No response detected. Proceeding with 'N'.");
+                } catch (ExecutionException | InterruptedException e) {
+                    System.out.println("An error occurred while reading input: " + e.getMessage());
+                }
+
+                if ("Y".equals(input_0)) {
+                    buildClasses();
+                    System.out.println("Classes built.");
+                } else {
+                    System.out.println("Skipping class build.");
+                }
+
+                // Second input
+                System.out.println("Would you like to compare your IDE and DB tables (Y/N): ");
+                String input = "N";
+                Future<String> future = executor.submit(scanner::nextLine);
+
+                try {
+                    input = future.get(10, TimeUnit.SECONDS).trim().toUpperCase();
+                } catch (TimeoutException e) {
+                    System.out.println("No response detected. Proceeding with 'N'.");
+                } catch (ExecutionException | InterruptedException e) {
+                    System.out.println("An error occurred while reading input: " + e.getMessage());
+                }
+
+                if ("Y".equals(input)) {
+                    getDbJson();
+                    analyzeJson();
+                    System.out.println("Actions completed successfully.");
+                } else {
+                    System.out.println("Skipping 'getDbJson' and 'analyzeJson'.");
+                }
+            } finally {
+                executor.shutdownNow();
+            }
         }
     }
 

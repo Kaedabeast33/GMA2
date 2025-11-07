@@ -1,4 +1,5 @@
 package org.example.inputs.schemas.reports;
+
 import org.example.bank.Annotations.*;
 
 import java.math.BigDecimal;

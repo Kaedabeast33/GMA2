@@ -64,7 +64,7 @@ public class ShellOrders {
     private String orderDate;
 
     @KdbColumn(name = "addon_included")
-    private String addonIncluded;
+    private Boolean  addonIncluded;
 
     @KdbColumn(name = "new_upgrade")
     private String newUpgrade;

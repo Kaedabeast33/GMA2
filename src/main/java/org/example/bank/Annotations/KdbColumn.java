@@ -1,7 +1,6 @@
 package org.example.bank.Annotations;
 
 
-
 import org.example.bank.KdbConverter.DefaultKdbConverter;
 
 import java.lang.annotation.Retention;
