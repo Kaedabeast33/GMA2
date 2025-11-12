@@ -1,7 +1,7 @@
 package org.example.inputs.schemas.leads;
 
-import org.example.bank.commonValues.TriggerType;
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
 import org.example.bank.commonValues.ValueTypes;
 
 import java.time.LocalDateTime;

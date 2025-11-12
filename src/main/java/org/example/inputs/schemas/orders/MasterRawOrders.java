@@ -1,9 +1,10 @@
 package org.example.inputs.schemas.orders;
 
+import org.example.bank.Annotations.*;
 import org.example.bank.commonValues.TriggerType;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;import org.example.bank.Annotations.*;
+import java.time.LocalDateTime;
 
 @KdbTable(
         description = "Table storing master raw orders",
@@ -72,9 +73,11 @@ public class MasterRawOrders {
     @KdbColumn(name = "due_date")
     private LocalDateTime dueDate;
 
+    @KdbIndex(indexGroups = {"idx_mo_purchase_type"})
     @KdbColumn(name = "purchase_type")
     private String purchaseType;
 
+    @KdbIndex(indexGroups = {"idx_mo_package_name"})
     @KdbColumn(name = "package_name")
     private String packageName;
 
@@ -94,10 +97,12 @@ public class MasterRawOrders {
 //    @KdbColumn(name = "divalign_ref_id")
 //    private String divalignRefId;
 
+    @KdbIndex(indexGroups = {"recon_id"})
     @KdbReference(referenceColumns = {}, cascadeRule = "")
     @KdbColumn(name = "mo_reconciliation_ref_id")
     private String moReconciliationRefId;
 
+    @KdbIndex(indexGroups = {"recon_id_2"})
     @KdbReference(referenceColumns = {}, cascadeRule = "")
     @KdbColumn(name = "mo_reconciliation_ref_id_2")
     private String moReconciliationRefId2;
@@ -168,7 +173,8 @@ public class MasterRawOrders {
         return """
                 BEGIN
                     -- SECOND BLOCK
-                    -- Additional nulling if product class or                     IF OLD.package_name != NEW.package_name THEN
+                    -- Additional nulling if product class or package changes
+                    IF OLD.package_name != NEW.package_name THEN
                         SET NEW.mo_reconciliation_ref_id = NULL;
                     END IF;
                 
@@ -187,7 +193,7 @@ public class MasterRawOrders {
                         SET NEW.mo_reconciliation_ref_id_4 = NULL;
                         SET NEW.mo_general_ref_id = NULL;
                     END IF;
-                   \s
+
                     IF NOT (OLD.employee_id <=> NEW.employee_id)
                        OR NOT (OLD.ref_login_username_id <=> NEW.ref_login_username_id)
                        OR NOT (OLD.order_date <=> NEW.order_date)

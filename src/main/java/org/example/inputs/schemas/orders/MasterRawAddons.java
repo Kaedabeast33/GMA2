@@ -1,7 +1,7 @@
 package org.example.inputs.schemas.orders;
 
-import org.example.bank.commonValues.TriggerType;
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
 
 import java.time.LocalDateTime;
 

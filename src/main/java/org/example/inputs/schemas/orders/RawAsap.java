@@ -2,7 +2,8 @@ package org.example.inputs.schemas.orders;
 
 import org.example.bank.Annotations.*;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+
 
 @KdbTable(
         description = "Table storing raw ASAP order records",
@@ -30,7 +31,7 @@ public class RawAsap {
 
     @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "create_time")
-    private LocalDateTime createTime;
+    private Timestamp createTime;
 
     @KdbColumn(name = "customer_name")
     private String customerName;
@@ -39,7 +40,7 @@ public class RawAsap {
     private String customerType;
 
     @KdbColumn(name = "due_date")
-    private LocalDateTime dueDate;
+    private Timestamp dueDate;
 
     @KdbColumn(name = "internet_action_code")
     private String internetActionCode;
@@ -104,7 +105,7 @@ public class RawAsap {
     private String state;
 
     @KdbColumn(name = "status_change_date")
-    private LocalDateTime statusChangeDate;
+    private Timestamp statusChangeDate;
 
     @KdbColumn(name = "street_address")
     private String streetAddress;
@@ -131,7 +132,7 @@ public class RawAsap {
     private String zipCode;
 
     @KdbColumn(name = "latest_insert_date")
-    private LocalDateTime latestInsertDate;
+    private Timestamp latestInsertDate =Timestamp.from(java.time.Instant.now());
 
     @KdbPrimaryKey
     @KdbColumn(name = "db_id")
@@ -145,4 +146,8 @@ public class RawAsap {
 
     @KdbColumn(name = "fun_id")
     private String funId;
+
+    public Object convertToEntity() {
+        return null;
+    }
 }

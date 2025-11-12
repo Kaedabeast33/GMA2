@@ -23,10 +23,9 @@ public class AppConfig {
         return properties.getProperty("app.javaDir", ""); // default value
     }
 
-    public static String getTemplateDir() {
-        System.out.println("Template Dir: " + properties.getProperty("app.templateDir", "gma.templates"));
-        return properties.getProperty("app.templateDir", "gma.templates");
-    }
+
+
+
 
     public static String getOutputDir() {
         System.out.println("Output Dir: " + properties.getProperty("app.outputDir", "output"));

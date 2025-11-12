@@ -1,9 +1,9 @@
 package org.example.inputs.schemas.leads;
 
+import org.example.bank.Annotations.*;
 import org.example.bank.commonValues.TriggerType;
-import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;import org.example.bank.Annotations.*;
+import java.time.LocalDateTime;
 
 @KdbTable(
         description = "table storing Vexus activity records",

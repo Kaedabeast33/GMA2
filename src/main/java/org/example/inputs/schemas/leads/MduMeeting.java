@@ -1,9 +1,8 @@
 package org.example.inputs.schemas.leads;
 
-import org.springframework.stereotype.Component;
+import org.example.bank.Annotations.*;
 
 import java.time.LocalDateTime;
-import org.example.bank.Annotations.*;
 @KdbTable(
         description = "table storing MDU meetings",
         name = "mdu_meeting",

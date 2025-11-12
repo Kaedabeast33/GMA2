@@ -80,21 +80,12 @@ public class MAClassCreator {
                         public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings) throws ParseException {
                             context.saveAll(table, entities, entityManager, upsertStrings);
                         }
-                        
-                        @Transactional
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager) throws ParseException {
-                            context.saveAll(table, entities,  entityManager);
-                        }
                     """;
         }
         else if(ma.getTransactionManagerBeanName().equalsIgnoreCase("transactionless")){
             initial = """
                         public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings) throws ParseException {
                             context.saveAllTransactionless(table,entities,user,pass,jdbcUrl,upsertStrings);
-                        }
-                        
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl) throws ParseException {
-                            context.saveAllTransactionless(table,entities,user,pass,jdbcUrl);
                         }
                     """;
         }
@@ -106,12 +97,7 @@ public class MAClassCreator {
                         public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException {
                             context.saveAll(table, entities, entityManager, upsertStrings);
                        }
-                            
-                        @Transactional(transactionManager = "%s")
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager) throws ParseException {
-                            context.saveAll(table, entities,  entityManager);
-                        }
-                    """, ma.getTransactionManagerBeanName(), ma.getTransactionManagerBeanName());
+                    """, ma.getTransactionManagerBeanName());
         }
 
         try {

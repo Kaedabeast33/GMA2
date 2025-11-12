@@ -74,7 +74,7 @@ public class TableClassCreator {
         }
 
 
-        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}), path, false);
+        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}),List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson"}), path, false);
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{}), path, true);
         generateTabImports(path);
         generateContextImport(path);
@@ -85,7 +85,7 @@ public class TableClassCreator {
         generateQueries(tab, path);
         generateTabCols(tab, path);
         generateTabGetSet(tab, path);
-        generateColumnMethods(tab, gmaName, maName, path);
+        generateColumnMethods(tab,path);
 
 
         Files.writeString(path, "\n}", StandardOpenOption.APPEND); // Close the class definition
@@ -109,57 +109,117 @@ public class TableClassCreator {
     }
 
 
-    private void generateColumnMethods(TableJson tab, String gmaName, String maName, Path path) throws IOException {
+    private void generateColumnMethods(TableJson tab,Path path) throws IOException {
 //        generateGetColumnsMethod(tab.getColumns(),path);
 //        generateGetColumnsByNameMethod(tab.getColumnGroups(),path);
-        generateGetColumnNamesMethod(gmaName, maName, path);
+        generateGetColumnNamesMethod(path);
 
         generateGetValues(tab.getColumns(), path);
+
+        generateUploadStatements(path);
 
 
     }
 
-    private void generateGetColumnNamesMethod(String gmaName, String maName, Path path) throws IOException {
-        String get = """
-                    @Override
-                    public List<String> getColumns(){
-                       List<String> list = context.getColumns(this.getGmaName(),this.getMaName(),this.getName());
-                       System.out.println(list);
-                       return list;
-                    }
-                    \s
-                    @Override
-                    public List<String> getColumnsByGroupName(String groupName){
-                        List<String> list = context.getColumnsByGroupName(this.getGmaName(),this.getMaName(),this.getName(),groupName);
-                        System.out.println(list);
-                        return list;
-                    }
-                    \s
-                    @Override
-                    public List<String> getUniqueIdentifierColumns(){
-                        List<String> list = context.getUniqueIdentifierColumns(this.getGmaName(),this.getMaName(),this.getName());
-                        System.out.println(list);
-                        return list;
-                    }
-                    \s
-                    @Override
-                    public List<String> getUniqueIdentifierColumnsByGroupName(String groupName){
-                        List<String> list = context.getUniqueIdentifierColumnsByGroupName(this.getGmaName(),this.getMaName(),this.getName(),groupName);
-                        System.out.println(list);
-                        return list;
+    private void generateUploadStatements(Path path) throws IOException {
+
+        String getUpload = """
+                        @Override
+                        public String getUploadDelete(List<ColumnTemplate> toDeleteBy,Boolean includeNullValues ) {
+                            return context.getUploadDelete(this.getGmaName(),this.getMaName(),this.getName(),toDeleteBy,includeNullValues);
                         }
-                    \s
-                    @Override
-                    public String replaceCharacters(String value){
-                       if(value==null){;
-                           return null;
-                       }
-                         return value.replace("'","''");
-                    }
-                    @Override
-                    public String getTableName(){
-                        return this.getName();
-                }
+                        
+                        @Override
+                        public String getUploadUpdate(List<ColumnTemplate> toUpdateBy,Boolean includeNullValues,List<ColumnJson> updateColumns ) {
+                            return context.getUploadUpdate(this.getGmaName(),this.getMaName(),this.getName(),toUpdateBy,includeNullValues,updateColumns);
+                        }
+                        
+                        @Override
+                        public String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues,List<ColumnJson> insertColumns,Boolean includePrimaryKey ) {
+                            return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName(),toInsertBy,includeNullValues,insertColumns,includePrimaryKey);
+                        }
+                        
+                        @Override
+                        public String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues) {
+                            return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName(),toInsertBy,includeNullValues);
+                        }
+                        
+                        @Override
+                        public String getUploadInsert() {
+                            return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName());
+                        }
+                
+                """;
+
+        Files.writeString(path, getUpload, StandardOpenOption.APPEND);
+    }
+
+    private void generateGetColumnNamesMethod(Path path) throws IOException {
+        String get = """
+                        @Override
+                        public List<ColumnJson> getColumns(){
+                           List<ColumnJson> list = context.getColumns(this.getGmaName(),this.getMaName(),this.getName());
+                           return list;
+                        }
+                        \s
+                        @Override
+                        public List<ColumnJson> getColumnsByGroupName(String groupName){
+                            List<ColumnJson> list = context.getColumnsByGroupName(this.getGmaName(),this.getMaName(),this.getName(),groupName);
+                            return list;
+                        }
+                        \s
+                        @Override
+                        public List<ColumnJson> getUniqueIdentifierColumns(){
+                            List<ColumnJson> list = context.getUniqueIdentifierColumns(this.getGmaName(),this.getMaName(),this.getName());
+                            return list;
+                        }
+                        \s
+                        @Override
+                        public List<ColumnJson> getUniqueIdentifierColumnsByGroupName(String groupName){
+                            List<ColumnJson> list = context.getUniqueIdentifierColumnsByGroupName(this.getGmaName(),this.getMaName(),this.getName(),groupName);
+                            return list;
+                            }
+                        \s
+                        @Override
+                        public List<String> getColumnsString(){
+                           List<String> list = context.getColumnsString(this.getGmaName(),this.getMaName(),this.getName());
+                           System.out.println(list);
+                           return list;
+                        }
+                        \s
+                        @Override
+                        public List<String> getColumnsByGroupNameString(String groupName){
+                            List<String> list = context.getColumnsByGroupNameString(this.getGmaName(),this.getMaName(),this.getName(),groupName);
+                            System.out.println(list);
+                            return list;
+                        }
+                        \s
+                        @Override
+                        public List<String> getUniqueIdentifierColumnsString(){
+                            List<String> list = context.getUniqueIdentifierColumnsString(this.getGmaName(),this.getMaName(),this.getName());
+                            System.out.println(list);
+                            return list;
+                        }
+                        \s
+                        @Override
+                        public List<String> getUniqueIdentifierColumnsByGroupNameString(String groupName){
+                            List<String> list = context.getUniqueIdentifierColumnsByGroupNameString(this.getGmaName(),this.getMaName(),this.getName(),groupName);
+                            System.out.println(list);
+                            return list;
+                            }
+                        \s
+                        
+                        @Override
+                        public String replaceCharacters(String value){
+                           if(value==null){;
+                               return null;
+                           }
+                             return value.replace("'","''");
+                        }
+                        @Override
+                        public String getTableName(){
+                            return this.getName();
+                        }
                 """;
         Files.writeString(path, get, StandardOpenOption.APPEND);
     }
@@ -222,7 +282,7 @@ public class TableClassCreator {
         String getValuesMethod = String.format("""
                 @Override
                 public String getValues()  {
-                    return String.format("(%s)\\n",
+                    return String.format("(%s)\\n ,",
                             %s
                     );
                 }
@@ -231,7 +291,7 @@ public class TableClassCreator {
         String getValuesArgMethod = String.format("""
                             @Override
                             public String getValues(String arg) {
-                                return String.format("(%s)\\n",
+                                return String.format("(%s)\\n,",
                 %s
                                 );
                             }

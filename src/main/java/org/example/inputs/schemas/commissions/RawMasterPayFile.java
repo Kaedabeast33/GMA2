@@ -1,8 +1,7 @@
 package org.example.inputs.schemas.commissions;
 
-import org.example.bank.commonValues.TriggerType;
-
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

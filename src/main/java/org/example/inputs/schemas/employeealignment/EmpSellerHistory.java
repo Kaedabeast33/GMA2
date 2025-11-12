@@ -1,7 +1,8 @@
 package org.example.inputs.schemas.employeealignment;
 
-import org.example.bank.commonValues.TriggerType;
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
+
 import java.time.LocalDateTime;
 
 @KdbTable(
@@ -42,6 +43,9 @@ public class EmpSellerHistory {
 
     @KdbColumn(name = "change_type")
     private String changeType;
+
+    @KdbColumn(name = "flat_rate")
+    private String flatRate;
 
 
     @KdbTrigger(name = "prevent_overlap_seller", description = "", triggerType = TriggerType.BEFORE_INSERT, triggerSet = {})

@@ -2,7 +2,6 @@ package org.example.inputs.schemas.commissions;
 
 import org.example.bank.Annotations.*;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

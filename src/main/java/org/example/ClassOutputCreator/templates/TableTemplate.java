@@ -2,6 +2,7 @@ package org.example.ClassOutputCreator.templates;
 
 import org.example.bank.OutputClassBank.EntityInterface;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 
@@ -60,14 +61,8 @@ public abstract class TableTemplate implements EntityInterface {
     //    protected final  MATemplate m;
 
 
-    @Override
-    public UpsertTemplate getUpsert() {
-        return upsert;
-    }
 
-    public void setUpsert(UpsertTemplate upsert) {
-        this.upsert = upsert;
-    }
+
 
     public String getName() {
         return name;
@@ -92,4 +87,6 @@ public abstract class TableTemplate implements EntityInterface {
     public String getMaName() {
         return maName;
     }
+
+    public abstract String getUploadDelete(List<ColumnTemplate> toDeleteBy, Boolean includeNullValues);
 }

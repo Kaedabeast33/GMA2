@@ -1,7 +1,8 @@
 package org.example.inputs.schemas.employeealignment;
 
-import org.example.bank.commonValues.TriggerType;
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
+
 import java.time.LocalDateTime;
 
 @KdbTable(name = "align_emp_upline_history", description = "tracks employee upline history from airtable", tags = {"airtable", "employee alignment", "upline history"}, type = "")

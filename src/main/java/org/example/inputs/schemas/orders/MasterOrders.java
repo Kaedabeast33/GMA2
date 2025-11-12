@@ -2,6 +2,7 @@ package org.example.inputs.schemas.orders;
 
 
 import org.example.bank.Annotations.*;
+
 import java.time.LocalDateTime;
 
 @KdbTable(
@@ -17,7 +18,7 @@ public class MasterOrders {
     private Long myRowId;
 
     @KdbIndex(indexGroups = {"idx_master_orders_db_id"})
-    @KdbColumn(name = "db_id")
+    @KdbColumn(name = "db_id",isNullable = false)
     private String dbId;
 
     @KdbIndex(indexGroups = {"idx_order_date"})
@@ -197,6 +198,9 @@ public class MasterOrders {
     @KdbColumn(name = "comp_name_level_1")
     private String compNameLevel1;
 
+    @KdbColumn(name = "flate_rate_level_1")
+    private String flateRateLevel1;
+
     @KdbColumn(name = "team_id_level_2")
     private String teamIdLevel2;
 
@@ -215,6 +219,9 @@ public class MasterOrders {
     @KdbColumn(name = "comp_name_level_2")
     private String compNameLevel2;
 
+    @KdbColumn(name = "flate_rate_level_2")
+    private String flateRateLevel2;
+
     @KdbColumn(name = "team_id_level_3")
     private String teamIdLevel3;
 
@@ -232,4 +239,11 @@ public class MasterOrders {
 
     @KdbColumn(name = "comp_name_level_3")
     private String compNameLevel3;
+
+    @KdbColumn(name = "flat_rate_level_3")
+    private String flatRateLevel3;
+
+
+
+
 }

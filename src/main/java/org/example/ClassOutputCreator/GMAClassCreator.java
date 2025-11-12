@@ -30,7 +30,7 @@ public class GMAClassCreator {
     static String resourceDir = ".bank.OutputClassBank.";
 
 
-    private static final String templateDir = AppConfig.getTemplateDir();
+    private static final String templateDir ="ClassOutputCreator.templates";
 
 
     public GMAClassCreator(GMAJson gma, List<String> curDir) throws IOException {
@@ -77,7 +77,8 @@ public class GMAClassCreator {
 
 
 
-        generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"GMATemplate", "MATemplate",""}), path, false);
+        generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"GMATemplate", "MATemplate"
+        }), path, false);
 
         generateContextImport(path);
         generateGmaFields(gma, path);
@@ -149,6 +150,41 @@ public class GMAClassCreator {
             if (!skipPackage) Files.writeString(path, packageDeclaration + "\n", StandardOpenOption.APPEND);
 
             if (!templates.isEmpty()) Files.writeString(path, templatesDecleration + "\n", StandardOpenOption.APPEND);
+            Files.writeString(path, importDecleration + "\n", StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates,List<String> jsons, Path path, boolean skipPackage) {
+//        List<String> importDir = new java.util.ArrayList<>(pkgDir.stream().toList());
+//        importDir.remove(importDir.size()-1);
+
+        StringBuilder jsonDecleration = new StringBuilder();
+        for(String json : jsons){
+            jsonDecleration.append("import ").append(javaDir).append(".").append(json).append(";\n");
+        }
+        StringBuilder templatesDecleration = new StringBuilder();
+        for (String template : templates) {
+            templatesDecleration.append("import ").append(javaDir).append(".").append(templateDir).append(".").append(template).append(";\n");
+        }
+
+        String templateImports = "import " + String.join(".", pkgDir);
+        String packageName = String.join(".", pkgDir);
+        String packageDeclaration = String.format("package %s;%n%n", packageName);
+
+
+        StringBuilder importDecleration = new StringBuilder();
+        for (String child : childDirs) {
+            importDecleration.append(templateImports).append(".").append(child).append(";\n");
+        }
+
+
+        try {
+            if (!skipPackage) Files.writeString(path, packageDeclaration + "\n", StandardOpenOption.APPEND);
+
+            if (!templates.isEmpty()) Files.writeString(path, templatesDecleration + "\n", StandardOpenOption.APPEND);
+            if(!jsons.isEmpty()) Files.writeString(path, jsonDecleration + "\n", StandardOpenOption.APPEND);
             Files.writeString(path, importDecleration + "\n", StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);

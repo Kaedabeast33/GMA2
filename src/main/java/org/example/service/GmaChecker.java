@@ -127,7 +127,7 @@ public class GmaChecker {
         String keyGen = uniqueCreator(keys).toString();
 
         insert = String.format(ITALIC + """
-            CREATE TABLE `%s` (
+            CREATE TABLE %s (
                 %s
                 %s
                 %s

@@ -1,10 +1,9 @@
 package org.example.inputs.schemas.leads;
 
+import org.example.bank.Annotations.*;
 import org.example.bank.commonValues.TriggerType;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import org.example.bank.Annotations.*;
 @KdbTable(
         description = "table storing Spotio activity feed records",
         name = "spotio_activity_feed",

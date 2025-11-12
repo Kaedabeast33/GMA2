@@ -40,4 +40,6 @@ public @interface KdbColumn {
     Class<?> converter() default DefaultKdbConverter.class;
 
 
+
+
 }

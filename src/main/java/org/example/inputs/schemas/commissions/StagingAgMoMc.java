@@ -1,7 +1,6 @@
 package org.example.inputs.schemas.commissions;
 
 import org.example.bank.Annotations.*;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

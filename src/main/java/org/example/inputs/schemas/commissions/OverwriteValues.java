@@ -1,8 +1,7 @@
 package org.example.inputs.schemas.commissions;
 
-import org.example.bank.commonValues.TriggerType;
-import org.springframework.stereotype.Component;
 import org.example.bank.Annotations.*;
+import org.example.bank.commonValues.TriggerType;
 
 @KdbTable(
         description = "tracks overwritten values for accounts, orders, and mobile numbers across systems",
