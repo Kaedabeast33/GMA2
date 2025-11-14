@@ -191,6 +191,48 @@ public class GMAClassCreator {
         }
     }
 
+    static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates,List<String> jsons, List<String> statics, Path path, boolean skipPackage) {
+//        List<String> importDir = new java.util.ArrayList<>(pkgDir.stream().toList());
+//        importDir.remove(importDir.size()-1);
+
+        StringBuilder staticDecleration = new StringBuilder();
+
+        for(String stat: statics){
+            staticDecleration.append("import static ").append(javaDir).append(".").append(stat).append(";\n");
+        }
+
+        StringBuilder jsonDecleration = new StringBuilder();
+        for(String json : jsons){
+            jsonDecleration.append("import ").append(javaDir).append(".").append(json).append(";\n");
+        }
+        StringBuilder templatesDecleration = new StringBuilder();
+        for (String template : templates) {
+            templatesDecleration.append("import ").append(javaDir).append(".").append(templateDir).append(".").append(template).append(";\n");
+        }
+
+        String templateImports = "import " + String.join(".", pkgDir);
+        String packageName = String.join(".", pkgDir);
+        String packageDeclaration = String.format("package %s;%n%n", packageName);
+
+
+        StringBuilder importDecleration = new StringBuilder();
+        for (String child : childDirs) {
+            importDecleration.append(templateImports).append(".").append(child).append(";\n");
+        }
+
+
+        try {
+            if (!skipPackage) Files.writeString(path, packageDeclaration + "\n", StandardOpenOption.APPEND);
+
+            if (!templates.isEmpty()) Files.writeString(path, templatesDecleration + "\n", StandardOpenOption.APPEND);
+            if(!jsons.isEmpty()) Files.writeString(path, jsonDecleration + "\n", StandardOpenOption.APPEND);
+            if(!statics.isEmpty()) Files.writeString(path, staticDecleration + "\n", StandardOpenOption.APPEND);
+            Files.writeString(path, importDecleration + "\n", StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void generateGmaMas(GMAJson gma, Path path) throws IOException {
         for (int i = 0; i < gma.getMa().size(); i++) {
             String className = "MA_" + gma.getMa().get(i).getName();
@@ -252,6 +294,8 @@ public class GMAClassCreator {
         Files.writeString(path, context, StandardOpenOption.APPEND);
 
     }
+
+
 
 
 }

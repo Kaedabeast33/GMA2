@@ -2,8 +2,15 @@ package org.example.inputs.schemas.employeealignment;
 
 import org.example.bank.Annotations.*;
 import org.example.bank.commonValues.TriggerType;
+import com.google.gson.Gson;
+import jakarta.persistence.Transient;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @KdbTable(name = "align_emp_upline_history", description = "tracks employee upline history from airtable", tags = {"airtable", "employee alignment", "upline history"}, type = "")
 public class AlignEmpUplineHistory {
@@ -121,6 +128,7 @@ public class AlignEmpUplineHistory {
 //    public String getIdName() {
 //        return "";
 //    }
+
 
 
 }

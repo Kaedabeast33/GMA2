@@ -74,7 +74,7 @@ public class TableClassCreator {
         }
 
 
-        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}),List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson"}), path, false);
+        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}),List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson"}),List.of(new String[]{"bank.OutputClassBank.KdbColumnWrapper.safeGetValue"}), path, false);
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{}), path, true);
         generateTabImports(path);
         generateContextImport(path);
@@ -265,7 +265,7 @@ public class TableClassCreator {
             String className = "COL_" + col.getName();
 
             // Add to getEntitiesList
-            getEntitiesList.append(String.format("          get%s().getEntityValue().getValue().toString(),\n", className));
+            getEntitiesList.append(String.format("          safeGetValue(get%s().getEntityValue()),\n", className));
 
             // Add to variableStrings for String.format placeholders
             variableStrings.append("'%s',");

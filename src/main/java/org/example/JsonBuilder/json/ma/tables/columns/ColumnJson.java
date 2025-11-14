@@ -63,7 +63,9 @@ public class ColumnJson {
         this.isRequired = kdbPrimaryKey != null || kdbColumn.isRequired();
 
         this.type = !Objects.equals(kdbColumn.type(), "default") ? kdbColumn.type() : TYPE_MAP.get(fieldType);
+
         this.fieldType = fieldType.getSimpleName();
+//        System.out.println("9999"+this.type +this.name+this.fieldType);
         this.defaultValue = kdbColumn.defaultValue();
 
         if (kdbIndex != null) {

@@ -19,6 +19,8 @@ import com.google.gson.GsonBuilder;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -65,60 +67,73 @@ public class JsonBuilder {
                 .create();
     }
 
-    static String toPakcage = "src/main/java/";
+    static String toPakcage ;
+    static {
+        // Dynamically set `toPakcage` from an environment variable or configuration property
+        toPakcage = System.getenv("JAVA_SOURCE_PATH");
+        if (toPakcage == null || toPakcage.isEmpty()) {
+            toPakcage = "src/main/java/"; // Default value for development
+        }
+    }
 
 
     public GMAJson buildJsonOfGma(KdbGma gma) throws InvocationTargetException, IllegalAccessException {
 
         GMAJson gmaJson = new GMAJson(gma);
-//
-//
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+
+        if (gma.getMa() == null || gma.getMa().isEmpty()) {
+            gmaJson.setMa(new ArrayList<>());
+            System.out.println("No MA configurations found in GMA config " + gma.getName());
+            return gmaJson;
+        }
+
+        // Filter only MA entries whose resource folders actually exist in the classpath
+        List<MAConfigTemplate> validMa = gma.getMa().stream()
+                .filter(ma -> {
+                    try {
+                        // Your MA folder (coming from ma.getJavaFolderPath()) must match package path
+                        // Example: com/chipr/GMA/com.chipr.GMA.inputs/schemas/employeealignment
+                        String pathPattern = "classpath*:" + ma.getJavaFolderPath() + "/**/*.class";
+
+                        Resource[] resources = resolver.getResources(pathPattern);
+                        boolean exists = resources.length > 0;
+
+                        if (!exists) {
+                            System.out.println("MA folder NOT found on classpath, skipping: " + ma.getJavaFolderPath());
+                        }
+
+                        return exists;
+                    } catch (IOException e) {
+                        System.out.println("Error checking MA path: " + ma.getJavaFolderPath());
+                        return false;
+                    }
+                })
+                .toList();
+
+        gma.setMa(validMa);
+
+        // Now build MA JSON definitions
         List<MAJson> maJsons = new ArrayList<>();
-        // filter out missing MA folders
-        gma.setMa(gma.getMa().stream().filter(maTemp -> {
-            String folderPath = workingDir + toPakcage + maTemp.getJavaFolderPath();
-            boolean exists = Files.isDirectory(Path.of(folderPath));
-            if (!exists) {
-                System.out.println("MA folder not found, skipping: " + folderPath);
-            }
-            return exists;
-        }).toList());
         for (MAConfigTemplate db : gma.getMa()) {
             MAJson maJson = new MAJson(db);
-//            System.out.println(db.getJavaFolderPath()+" hhhh");
-
-            // setting tables of the Schema
             maJson.setTables(buildJsonOfTables(db.getJavaFolderPath()));
+
             List<ProcedureJson> allProcedures = new ArrayList<>();
-            // collecting procedures from all tables
             for (TableJson table : maJson.getTables()) {
-
-                ProcedureJson[] p = table.getTableProcedures();
-                allProcedures.addAll(Arrays.asList(p));
-
-
+                Collections.addAll(allProcedures, table.getTableProcedures());
             }
-            ProcedureJson[] procedureArray = new ProcedureJson[allProcedures.size()];
-            allProcedures.toArray(procedureArray);
-            maJson.setProcedures(procedureArray);
-//            maJson.setQueries(maJson.getQueriesFromTables());
 
+            maJson.setProcedures(allProcedures.toArray(new ProcedureJson[0]));
             maJsons.add(maJson);
-
-
         }
-//
-//
-//
-        gmaJson.setMa(maJsons);
 
+        gmaJson.setMa(maJsons);
         gmaJson.setQueryGroups(getQueryGroups(gmaJson));
 
-
         return gmaJson;
-
-
     }
+
 
     private QueryGroupJson[] getQueryGroups(GMAJson gmaJson) {
         Map<String, QueryGroupJson> groupsMap = new TreeMap<>();

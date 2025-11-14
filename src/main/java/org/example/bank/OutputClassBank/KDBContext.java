@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum KDBContext {
@@ -38,10 +39,12 @@ public enum KDBContext {
     public GMAJson getGmaByName(String gmaName) {
 
         return gmaJsonMap.get(gmaName);
+
     }
 
     public List<ColumnJson> getColumns(String gmaName, String maName, String tableName) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+//        System.out.println(gmaJsonMap.getName()+" gma name");
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
         if (ma != null) {
             TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
@@ -128,6 +131,7 @@ public enum KDBContext {
 
     public List<String> getColumnsString(String gmaName, String maName, String tableName) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+//        System.out.println(gmaJsonMap.getName()+" gma name");
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
         if (ma != null) {
             TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
@@ -229,9 +233,9 @@ public enum KDBContext {
         int i = 0;
         for (EntityInterface entity : entities) {
             sb.append(entity.getValues());
-            System.out.println(entity.getValues());
+//            System.out.println(entity.getValues());
             if (++i % 1000 == 0 || i == entities.size()) {
-                System.out.println(sb);
+//                System.out.println(sb);
                 saveEntities(sb, entityManager);
                 sb = new StringBuilder(init);
             }
@@ -240,7 +244,12 @@ public enum KDBContext {
         // Ensure the insertFunction runs in the same transaction
         for(String upsertQuery : upsertStrings) {
             System.out.println("Executing upsert query: " + upsertQuery);
-            entityManager.createNativeQuery(upsertQuery).executeUpdate();
+            try {
+                entityManager.createNativeQuery(upsertQuery).executeUpdate();
+            }catch (Exception e){
+                System.out.println("error executing upsert query: " + upsertQuery);
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -281,7 +290,7 @@ public enum KDBContext {
         String modifiedString = sb.toString().replace("'null'", "NULL");
 //        System.out.println(modifiedString);
         try {
-            System.out.println(modifiedString.substring(0, Math.min(modifiedString.length(), 10000)));
+//            System.out.println(modifiedString.substring(0, Math.min(modifiedString.length(), 10000)));
             Files.write(Path.of("query.txt"), modifiedString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
 //            System.out.println(modifiedString);
 //            System.out.println("inserted batch 1000 records");
@@ -297,195 +306,171 @@ public enum KDBContext {
 
 
 
-    public String getUploadDelete(String gmaName, String maName, String tableName, List<ColumnTemplate> toDeleteBy,Boolean includeNullValues) {
+    public String getUploadDelete(String gmaName, String maName, String tableName,
+                                  List<ColumnTemplate> toDeleteBy, Boolean includeNullValues) {
+
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
-        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
-        if (ma != null) {
-            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
-            if (table != null) {
-//                 table.getColumns();
-
-                String tableNameInsert = tableName + "_insert";
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i< toDeleteBy.size();i++) {
-                    ColumnTemplate col = toDeleteBy.get(i);
-                    if(!includeNullValues) {
-                        if(i==toDeleteBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append(" AND ");
-                    }else {
-                        if(i==toDeleteBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append(" AND ");
-                    }
-
-                }
-
-                sb.append("\t)");
-
-                String deleteQuery = String.format("""
-                        DELETE FROM %s t1
-                        WHERE not exists (
-                            SELECT 1
-                            FROM %s t2
-                            WHERE %s
-                        );
-                        """, tableName, tableNameInsert,sb);
-
-                return deleteQuery;
-
-
-            } else {
-                System.out.println("Table " + tableName + " not found in MA " + maName);
-                return "";
-            }
+        if (gmaJsonMap == null) {
+            System.out.println("GMA " + gmaName + " not found");
+            return "";
         }
-        System.out.println("MA " + maName + " not found in GMA " + gmaName);
-        return "";
 
+        MAJson ma = gmaJsonMap.getMa().stream()
+                .filter(maJson -> Objects.equals(maJson.getName(), maName))
+                .findFirst()
+                .orElse(null);
+
+        if (ma == null) {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+            return "";
+        }
+
+        TableJson table = Arrays.stream(ma.getTables())
+                .filter(tableJson -> Objects.equals(tableJson.getName(), tableName))
+                .findFirst()
+                .orElse(null);
+
+        if (table == null) {
+            System.out.println("Table " + tableName + " not found in MA " + maName);
+            return "";
+        }
+
+        // Build join condition string
+        String joinCondition = toDeleteBy.stream()
+                .map(col -> "t1." + col.getName() + (includeNullValues ? "<=>" : "=") + "t2." + col.getName())
+                .collect(Collectors.joining(" AND "));
+
+        // Build join-based delete query
+        String deleteQuery = String.format("""
+        DELETE t1
+        FROM %s t1
+        LEFT JOIN %s t2
+        ON %s
+        WHERE t2.%s IS NULL;
+        """, tableName, tableName + "_insert", joinCondition, toDeleteBy.get(0).getName());
+
+        return deleteQuery;
     }
 
-    public String getUploadUpdate(String gmaName, String maName, String tableName, List<ColumnTemplate> toUpdateBy,Boolean includeNullValues,List<ColumnJson> updateColumns) {
+
+    public String getUploadUpdate(String gmaName, String maName, String tableName,
+                                  List<ColumnTemplate> toUpdateBy, Boolean includeNullValues,
+                                  List<ColumnJson> updateColumns) {
+
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
-        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
-        List<ColumnJson> columnsToUpdate = updateColumns.stream().filter(col->!col.getPrimaryKey()).toList();
-        if (ma != null) {
-            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
-            if (table != null) {
-//                 table.getColumns();
-
-                String tableNameInsert = tableName + "_insert";
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i< toUpdateBy.size();i++) {
-                    ColumnTemplate col = toUpdateBy.get(i);
-                    if(!includeNullValues) {
-                        if(i==toUpdateBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append(" AND ");
-                    }else {
-                        if(i==toUpdateBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append(" AND ");
-                    }
-
-                }
-                StringBuilder sb2 = new StringBuilder();
-                for(ColumnJson uCol : columnsToUpdate){
-                    sb2.append("t1.").append(uCol.getName()).append("=t2.").append(uCol.getName()).append("\n,");
-                }
-                sb2.setLength(sb2.length()-1);
-                String updateQuery = String.format("""
-                        UPDATE %s AS t1
-                            JOIN %s AS t2
-                                ON %s
-                            SET
-                                %s;
-                        """, tableName, tableNameInsert,sb,sb2);
-
-                return updateQuery;
-
-
-            } else {
-                System.out.println("Table " + tableName + " not found in MA " + maName);
-                return "";
-            }
+        if (gmaJsonMap == null) {
+            System.out.println("GMA " + gmaName + " not found");
+            return "";
         }
-        System.out.println("MA " + maName + " not found in GMA " + gmaName);
-        return "";
 
+        MAJson ma = gmaJsonMap.getMa().stream()
+                .filter(m -> Objects.equals(m.getName(), maName))
+                .findFirst()
+                .orElse(null);
+
+        if (ma == null) {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+            return "";
+        }
+
+        TableJson table = Arrays.stream(ma.getTables())
+                .filter(t -> Objects.equals(t.getName(), tableName))
+                .findFirst()
+                .orElse(null);
+
+        if (table == null) {
+            System.out.println("Table " + tableName + " not found in MA " + maName);
+            return "";
+        }
+
+        String tableNameInsert = tableName + "_insert";
+
+        // Build join condition from toUpdateBy
+        String joinCondition = toUpdateBy.stream()
+                .map(col -> "t1." + col.getName() + (includeNullValues ? "<=>" : "=") + "t2." + col.getName())
+                .collect(Collectors.joining(" AND "));
+
+        // Filter columns to update: exclude primary keys, db_id, and columns used in join
+        Set<String> toUpdateByNames = toUpdateBy.stream().map(ColumnTemplate::getName).collect(Collectors.toSet());
+        List<ColumnJson> columnsToUpdate = updateColumns.stream()
+                .filter(c -> !c.getPrimaryKey() && !Objects.equals(c.getName(), "db_id") && !toUpdateByNames.contains(c.getName()))
+                .toList();
+
+        // Build SET clause
+        String setClause = columnsToUpdate.stream()
+                .map(c -> "t1." + c.getName() + " = t2." + c.getName())
+                .collect(Collectors.joining(", "));
+
+        // Build final UPDATE query
+        String updateQuery = String.format("""
+            UPDATE %s AS t1
+            JOIN %s AS t2
+                ON %s
+            SET %s;
+            """, tableName, tableNameInsert, joinCondition, setClause);
+
+        return updateQuery;
     }
+
 
     public String getUploadInsert(String gmaName, String maName, String tableName, List<ColumnTemplate> toInsertBy,Boolean includeNullValues,List<ColumnJson> insertColumns,Boolean includePrimaryKey) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
-        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
-
-        if (ma != null) {
-            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
-            if (table != null) {
-//                 table.getColumns();
-
-                String tableNameInsert = tableName + "_insert";
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i< toInsertBy.size();i++) {
-                    ColumnTemplate col = toInsertBy.get(i);
-                    if(!includeNullValues) {
-                        if(i==toInsertBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append(" AND ");
-                    }else {
-                        if(i==toInsertBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append(" AND ");
-                    }
-
-                }
-
-
-
-
-
-                StringBuilder sb2 = new StringBuilder();
-                for(ColumnJson uCol : insertColumns){
-                    if(includePrimaryKey) {
-                        sb2.append(uCol.getName()).append("\n,\t\t");
-                    }else{
-                        if(!uCol.getPrimaryKey()) {
-                            sb2.append(uCol.getName()).append("\n,\t\t");
-                        }
-                    }
-                }
-                sb2.setLength(sb2.length()-1);
-
-                StringBuilder sb3 = new StringBuilder();
-                for(ColumnJson uCol : insertColumns){
-                    if(includePrimaryKey) {
-                        sb3.append("t2.").append(uCol.getName()).append("\n,");
-                    }else{
-                        if(!uCol.getPrimaryKey()) {
-                            sb3.append("t2.").append(uCol.getName()).append("\n,");
-                        }
-                    }
-                }
-                sb3.setLength(sb3.length()-1);
-                String insertQuery = String.format("""
-                        INSERT INTO %s (
-                            %s
-                        )
-                        SELECT 
-                            %s
-                        FROM %s t2
-                        WHERE NOT exists (SELECT 1 FROM %s t1
-                            where 
-                                %s
-                            
-                            );
-                        """, tableName,sb2,sb3, tableNameInsert,tableName,sb);
-
-                return insertQuery;
-
-
-            } else {
-                System.out.println("Table " + tableName + " not found in MA " + maName);
-                return "";
-            }
+        if (gmaJsonMap == null) {
+            System.out.println("GMA " + gmaName + " not found");
+            return "";
         }
-        System.out.println("MA " + maName + " not found in GMA " + gmaName);
-        return "";
+
+        MAJson ma = gmaJsonMap.getMa().stream()
+                .filter(m -> Objects.equals(m.getName(), maName))
+                .findFirst()
+                .orElse(null);
+
+        if (ma == null) {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+            return "";
+        }
+
+        TableJson table = Arrays.stream(ma.getTables())
+                .filter(t -> Objects.equals(t.getName(), tableName))
+                .findFirst()
+                .orElse(null);
+
+        if (table == null) {
+            System.out.println("Table " + tableName + " not found in MA " + maName);
+            return "";
+        }
+
+        String tableNameInsert = tableName + "_insert";
+
+        // Build join condition
+        String joinCondition = toInsertBy.stream()
+                .map(col -> "t1." + col.getName() + (includeNullValues ? "<=>" : "=") + "t2." + col.getName())
+                .collect(Collectors.joining(" AND "));
+
+        // Columns for insert
+        List<ColumnJson> colsToInsert = insertColumns.stream()
+                .filter(c -> includePrimaryKey || !c.getPrimaryKey())
+                .toList();
+
+        String columns = colsToInsert.stream()
+                .map(ColumnJson::getName)
+                .collect(Collectors.joining(", "));
+
+        String values = colsToInsert.stream()
+                .map(c -> "t2." + c.getName())
+                .collect(Collectors.joining(", "));
+        String insertQuery = String.format("""
+            INSERT INTO %s (%s)
+            SELECT %s
+            FROM %s t2
+            LEFT JOIN %s t1
+                ON %s
+            WHERE t1.%s IS NULL;
+            """, tableName, columns, values, tableNameInsert, tableName, joinCondition, toInsertBy.get(0).getName());
+
+        return insertQuery;
+
+
 
     }
 
@@ -525,55 +510,55 @@ public enum KDBContext {
 
     public String getUploadInsert(String gmaName, String maName, String tableName, List<ColumnTemplate> toInsertBy,Boolean includeNullValues) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
-        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
-
-        if (ma != null) {
-            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
-            if (table != null) {
-//                 table.getColumns();
-
-                String tableNameInsert = tableName + "_insert";
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i< toInsertBy.size();i++) {
-                    ColumnTemplate col = toInsertBy.get(i);
-                    if(!includeNullValues) {
-                        if(i==toInsertBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append("\n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("=t1.").append(col.getName()).append(" AND ");
-                    }else {
-                        if(i==toInsertBy.size()-1){
-                            sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append(" \n");
-                            break;
-                        }
-                        sb.append("t2.").append(col.getName()).append("<=>t1.").append(col.getName()).append(" AND ");
-                    }
-
-                }
-
-
-                String insertQuery = String.format("""
-                        INSERT INTO %s 
-                            SELECT * FROM %s t2
-                            WHERE NOT exists (SELECT 1 FROM %s t1
-                                where 
-                                    %s
-                                
-                            );
-                        """, tableName, tableNameInsert,tableName,sb);
-
-                return insertQuery;
-
-
-            } else {
-                System.out.println("Table " + tableName + " not found in MA " + maName);
-                return "";
-            }
+        if (gmaJsonMap == null) {
+            System.out.println("GMA " + gmaName + " not found");
+            return "";
         }
-        System.out.println("MA " + maName + " not found in GMA " + gmaName);
-        return "";
+
+        MAJson ma = gmaJsonMap.getMa().stream()
+                .filter(m -> Objects.equals(m.getName(), maName))
+                .findFirst()
+                .orElse(null);
+
+        if (ma == null) {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+            return "";
+        }
+
+        TableJson table = Arrays.stream(ma.getTables())
+                .filter(t -> Objects.equals(t.getName(), tableName))
+                .findFirst()
+                .orElse(null);
+
+        if (table == null) {
+            System.out.println("Table " + tableName + " not found in MA " + maName);
+            return "";
+        }
+
+        String tableNameInsert = tableName + "_insert";
+
+        // Build join condition
+        String joinCondition = toInsertBy.stream()
+                .map(col -> "t1." + col.getName() + (includeNullValues ? "<=>" : "=") + "t2." + col.getName())
+                .collect(Collectors.joining(" AND "));
+
+        // Build insert query using LEFT JOIN
+        String insertQuery = String.format("""
+            INSERT INTO %s
+            SELECT t2.*
+            FROM %s t2
+            LEFT JOIN %s t1
+                ON %s
+            WHERE t1.%s IS NULL;
+            """,
+                tableName,
+                tableNameInsert,
+                tableName,
+                joinCondition,
+                toInsertBy.get(0).getName() // first column for IS NULL check
+        );
+
+        return insertQuery;
 
     }
 

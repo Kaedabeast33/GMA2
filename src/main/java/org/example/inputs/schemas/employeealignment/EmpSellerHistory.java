@@ -1,9 +1,19 @@
 package org.example.inputs.schemas.employeealignment;
 
-import org.example.bank.Annotations.*;
-import org.example.bank.commonValues.TriggerType;
 
+import org.example.bank.Annotations.*;
+import org.example.bank.OutputClassBank.EntityInterface;
+import org.example.bank.commonValues.TriggerType;
+import org.example.bank.commonValues.ValueTypes;
+import com.google.gson.Gson;
+import jakarta.persistence.Transient;
+
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @KdbTable(
         description = "tracks historical records of employee sellers including roles, teams, and status changes",
@@ -27,7 +37,7 @@ public class EmpSellerHistory {
     @KdbColumn(name = "end_date")
     private LocalDateTime endDate;
 
-    @KdbColumn(name = "is_active", type = "BIT")
+    @KdbColumn(name = "is_active", type = ValueTypes.BOOLEAN)
     private Boolean isActive;
 
 
@@ -74,4 +84,7 @@ public class EmpSellerHistory {
                     END IF;
                 END""";
     }
+
+
+
 }

@@ -2,6 +2,7 @@ package org.example.inputs.schemas.orders;
 
 //import com.chipr.DORM.schemas.dorm.orders.raw_tmobile.TAB_raw_tmobile;
 
+
 import org.example.bank.Annotations.KdbColumn;
 import org.example.bank.Annotations.KdbPrimaryKey;
 import org.example.bank.Annotations.KdbTable;
@@ -20,14 +21,16 @@ public class RawTmobile {
     @KdbColumn(name = "db_id")
     private String dbId = UUID.randomUUID().toString();
 
-
     @KdbColumn(name = "weekending_date")
+////    @CsvCustomBindByName(column = "Weekending Date", converter = MultiFormatDateConverter.class)
     private Timestamp weekendingDate;
 
     @KdbColumn(name = "order_date")
+////    @CsvCustomBindByName(column = "Order Date", converter = MultiFormatDateConverter.class)
     private Timestamp orderDate;
 
     @KdbColumn(name = "track_until_date")
+////    @CsvCustomBindByName(column = "Track Until Date", converter = MultiFormatDateConverter.class)
     private Timestamp trackUntilDate;
 
     @KdbColumn(name = "order_type")
@@ -83,18 +86,23 @@ public class RawTmobile {
     private String accountStatus;
 
     @KdbColumn(name = "est_installation_date")
+//    @CsvCustomBindByName(column = "Est. Installation Date", converter = MultiFormatDateConverter.class)
     private Timestamp estInstallationDate;
 
     @KdbColumn(name = "order_cancellation_date")
+//    @CsvCustomBindByName(column = "Order Cancellation Date", converter = MultiFormatDateConverter.class)
     private Timestamp orderCancellationDate;
 
     @KdbColumn(name = "activation_date")
+//    @CsvCustomBindByName(column = "Activation Date", converter = MultiFormatDateConverter.class)
     private Timestamp activationDate;
 
     @KdbColumn(name = "termination_request_date")
+//    @CsvCustomBindByName(column = "Termination Request Date", converter = MultiFormatDateConverter.class)
     private Timestamp terminationRequestDate;
 
     @KdbColumn(name = "deactivation_date")
+//    @CsvCustomBindByName(column = "Deactivation Date", converter = MultiFormatDateConverter.class)
     private Timestamp deactivationDate;
 
     @KdbColumn(name = "vol_involuntary")
@@ -106,6 +114,7 @@ public class RawTmobile {
     private String cancellationReason;
 
     @KdbColumn(name = "eligibility_date")
+//    @CsvCustomBindByName(column = "eligibility date", converter = MultiFormatDateConverter.class)
     private Timestamp eligibilityDate;
 
     @KdbColumn(name = "market")
@@ -347,6 +356,41 @@ public class RawTmobile {
         this.partner = partner;
     }
 
+//
+//    public TAB_raw_tmobile convertToEntity() throws Exception {
+//        TAB_raw_tmobile tmobile = new TAB_raw_tmobile();
+//
+//        tmobile.getCOL_db_insert_date().setEntityValue(getDbInsertDate());
+//        tmobile.getCOL_db_id().setEntityValue(getDbId());
+//        tmobile.getCOL_weekending_date().setEntityValue(getWeekendingDate());
+//        tmobile.getCOL_order_date().setEntityValue(getOrderDate());
+//        tmobile.getCOL_track_until_date().setEntityValue(getTrackUntilDate());
+//        tmobile.getCOL_order_type().setEntityValue(getOrderType());
+//        tmobile.getCOL_order_number().setEntityValue(getOrderNumber());
+//        tmobile.getCOL_rep_id().setEntityValue(getRepId());
+//        tmobile.getCOL_promo_value().setEntityValue(getPromoValue());
+//        tmobile.getCOL_fiber_plan().setEntityValue(getFiberPlan());
+//        tmobile.getCOL_mrc().setEntityValue(getMrc());
+//        tmobile.getCOL_address_id().setEntityValue(getAddressId());
+//        tmobile.getCOL_street_address().setEntityValue(getStreetAddress());
+//        tmobile.getCOL_unit().setEntityValue(getUnit());
+//        tmobile.getCOL_city().setEntityValue(getCity());
+//        tmobile.getCOL_state().setEntityValue(getState());
+//        tmobile.getCOL_zip_code().setEntityValue(getZipCode());
+//        tmobile.getCOL_account_status().setEntityValue(getAccountStatus());
+//        tmobile.getCOL_est_installation_date().setEntityValue(getEstInstallationDate());
+//        tmobile.getCOL_order_cancellation_date().setEntityValue(getOrderCancellationDate());
+//        tmobile.getCOL_activation_date().setEntityValue(getActivationDate());
+//        tmobile.getCOL_termination_request_date().setEntityValue(getTerminationRequestDate());
+//        tmobile.getCOL_deactivation_date().setEntityValue(getDeactivationDate());
+//        tmobile.getCOL_vol_involuntary().setEntityValue(getVolInvoluntary());
+//        tmobile.getCOL_cancellation_reason().setEntityValue(getCancellationReason());
+//        tmobile.getCOL_eligibility_date().setEntityValue(getEligibilityDate());
+//        tmobile.getCOL_market().setEntityValue(getMarket());
+//        tmobile.getCOL_partner().setEntityValue(getPartner());
+//
+//        return tmobile;
+//    }
 
 }
 

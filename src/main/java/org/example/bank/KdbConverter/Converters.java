@@ -36,11 +36,21 @@ public class Converters {
         return new EntityValue<>(Double.parseDouble(input.toString()), Double.class);
     };
 
-    public static final KdbConverter<Object, Boolean> BOOLEAN = input -> {
-        if (input == null) return new EntityValue<>(null, Boolean.class);
-        if (input instanceof Boolean) return new EntityValue<>((Boolean) input, Boolean.class);
-        return new EntityValue<>(input.toString().equals("1") || input.toString().equalsIgnoreCase("true"), Boolean.class);
+    public static final KdbConverter<Object, Integer> BOOLEAN = input -> {
+        if (input == null) {
+            return new EntityValue<>(null, Integer.class);
+        }
+
+        if (input instanceof Boolean) {
+            // true → 1, false → 0
+            return new EntityValue<>((Boolean) input ? 1 : 0, Integer.class);
+        }
+
+        // Convert strings like "1", "true", "TRUE", etc. to 1, else 0
+        boolean isTrue = input.toString().equals("1") || input.toString().equalsIgnoreCase("true");
+        return new EntityValue<>(isTrue ? 1 : 0, Integer.class);
     };
+
 
     public static final KdbConverter<Object, Byte> BYTE = input -> {
         if (input == null) return new EntityValue<>(null, Byte.class);
@@ -49,18 +59,21 @@ public class Converters {
     };
 
     public static final KdbConverter<Object, LocalDate> DATE = input -> {
+//        System.out.println("Converting to DATE: " + input);
         if (input == null) return new EntityValue<>(null, LocalDate.class);
         if (input instanceof LocalDate) return new EntityValue<>((LocalDate) input, LocalDate.class);
         return new EntityValue<>(LocalDate.parse(input.toString()), LocalDate.class);
     };
 
     public static final KdbConverter<Object, Timestamp> TIMESTAMP = input -> {
+//        System.out.println("Converting to TIMESTAMP: " + input);
         if (input == null) return new EntityValue<>(null, Timestamp.class);
         if (input instanceof Timestamp) return new EntityValue<>((Timestamp) input, Timestamp.class);
         return new EntityValue<>(Timestamp.valueOf(input.toString()), Timestamp.class);
     };
 
     public static final KdbConverter<Object, LocalDateTime> DATETIME = input -> {
+//        System.out.println("Converting to DATETIME: " + input);
         if (input == null) return new EntityValue<>(null, LocalDateTime.class);
         if (input instanceof LocalDateTime) return new EntityValue<>((LocalDateTime) input, LocalDateTime.class);
         return new EntityValue<>(LocalDateTime.parse(input.toString(),
@@ -68,6 +81,7 @@ public class Converters {
     };
 
     public static final KdbConverter<Object, LocalDateTime> DATETIME6 = input -> {
+//        System.out.println("DATETIME6 converter called with input: " + input);
         if (input == null) return new EntityValue<>(null, LocalDateTime.class);
         if (input instanceof LocalDateTime) return new EntityValue<>((LocalDateTime) input, LocalDateTime.class);
         return new EntityValue<>(LocalDateTime.parse(input.toString(),

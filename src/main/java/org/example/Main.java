@@ -4,6 +4,7 @@ package org.example;
 //import org.example.dorm.employee_alignment.align_emp_upline_history.TAB_align_emp_upline_history;
 
 
+import jakarta.persistence.Column;
 import org.example.ClassOutputCreator.templates.ColumnTemplate;
 import org.example.ClassOutputCreator.templates.TableTemplate;
 
@@ -14,6 +15,7 @@ import org.example.ClassOutputCreator.templates.TableTemplate;
 
 //import org.example.output.dorm.GMA_dorm;
 //import org.example.output.dorm.orders.master_raw_orders.TAB_master_raw_orders;
+
 import org.example.service.Actions;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,7 +35,10 @@ public class Main {
         Actions actions = context.getBean(Actions.class);
         actions.mainRun();
 
-//        GMA_dorm dorm = new GMA_dorm();
+
+
+
+
 //        TAB_master_raw_orders mro = dorm.getMA_orders().getTAB_master_raw_orders();
 //        System.out.println(mro.getUploadDelete(List.of(new ColumnTemplate[]{mro.getCOL_carrier_system(), mro.getCOL_employee_id()}),false));
 //        System.out.println(mro.getUploadInsert(List.of(new ColumnTemplate[]{mro.getCOL_carrier_system(), mro.getCOL_employee_id()}),false));

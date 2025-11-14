@@ -1,6 +1,7 @@
 package org.example.inputs.schemas.orders;
 
 
+
 import org.example.bank.Annotations.*;
 import org.example.bank.commonValues.ValueTypes;
 import com.opencsv.bean.CsvBindByName;
@@ -412,5 +413,45 @@ public class RawBassVoice {
         this.manualEmployeeId = manualEmployeeId;
     }
 
+
+//    public TAB_raw_bass_voice convertToEntity() throws Exception {
+//        TAB_raw_bass_voice bassVoice = new TAB_raw_bass_voice();
+//
+//        bassVoice.getCOL_account_number().setEntityValue(getAccountNumber());
+//        bassVoice.getCOL_bass_order_id().setEntityValue(getBassOrderId());
+//        bassVoice.getCOL_city().setEntityValue(getCity());
+//        bassVoice.getCOL_create_time().setEntityValue(getCreateTime());
+//        bassVoice.getCOL_customer_name().setEntityValue(getCustomerName());
+//        bassVoice.getCOL_due_date().setEntityValue(getDueDate());
+//        bassVoice.getCOL_latest_insert_date().setEntityValue(getLatestInsertDate());
+//        bassVoice.getCOL_local_product_family().setEntityValue(getLocalProductFamily());
+//        bassVoice.getCOL_local_product_name().setEntityValue(getLocalProductName());
+//        bassVoice.getCOL_local_product_status().setEntityValue(getLocalProductStatus());
+//        bassVoice.getCOL_local_quantity().setEntityValue(getLocalQuantity());
+//        bassVoice.getCOL_master_agent_id().setEntityValue(getMasterAgentId());
+//        bassVoice.getCOL_master_agent_name().setEntityValue(getMasterAgentName());
+//        bassVoice.getCOL_order_number().setEntityValue(getOrderNumber());
+//        bassVoice.getCOL_order_status().setEntityValue(getOrderStatus());
+//        bassVoice.getCOL_partner_reference_id().setEntityValue(getPartnerReferenceId());
+//        bassVoice.getCOL_sales_person_id().setEntityValue(getSalesPersonId());
+//        bassVoice.getCOL_sales_person_name().setEntityValue(getSalesPersonName());
+//        bassVoice.getCOL_sales_persons_username().setEntityValue(getSalesPersonsUsername());
+//        bassVoice.getCOL_state().setEntityValue(getState());
+//        bassVoice.getCOL_status_change_date().setEntityValue(getStatusChangeDate());
+//        bassVoice.getCOL_street_address().setEntityValue(getStreetAddress());
+//        bassVoice.getCOL_sub_agent_name().setEntityValue(getSubAgentName());
+//        bassVoice.getCOL_sub_agent_username().setEntityValue(getSubAgentUsername());
+//        bassVoice.getCOL_subagent_id().setEntityValue(getSubAgentId());
+//        bassVoice.getCOL_type_of_sale().setEntityValue(getTypeOfSale());
+//        bassVoice.getCOL_unit().setEntityValue(getUnit());
+//        bassVoice.getCOL_wtn().setEntityValue(getWtn());
+//        bassVoice.getCOL_zip_code().setEntityValue(getZipCode());
+//        bassVoice.getCOL_db_id().setEntityValue(getDbId());
+//        bassVoice.getCOL_dsl_migrator().setEntityValue(getDslMigrator());
+//        bassVoice.getCOL_employee_id().setEntityValue(getEmployeeId());
+//        bassVoice.getCOL_manual_employee_id().setEntityValue(getManualEmployeeId());
+//
+//        return bassVoice;
+//    }
 
 }
