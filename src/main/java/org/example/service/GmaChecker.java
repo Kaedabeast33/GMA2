@@ -259,15 +259,9 @@ public class GmaChecker {
         String insert = null;
         ;
         switch (type) {
-            case "type" -> {
-                replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s;" + RESET, tableName, columnName, changeType);
-
-            }
-            case "isNullable" -> {
-                if (!col.isNullable())
-                    replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s not null;" + RESET, tableName, columnName, col.getType());
-                else
-                    replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN `%s` %s null;" + RESET, tableName, columnName, col.getType());
+            case "type", "isNullable","defaultValue" -> {
+                String columnDef = String.format("`%s` %s %s %s %s", columnName, col.getType(), col.isNullable() ? "NULL" : "NOT NULL", col.isUnique() ? "UNIQUE" : "", !Objects.equals(col.getDefaultValue(), "") ? "DEFAULT " + col.getDefaultValue():"");
+                replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN %s;" + RESET, tableName,columnDef);
 
             }
             case "column DB" -> {
@@ -277,7 +271,7 @@ public class GmaChecker {
             case "column IDE" -> {
                 String columnDef = String.format("`%s` %s %s %s", columnName, col.getType(), col.isNullable() ? "NULL" : "NOT NULL", col.isUnique() ? "UNIQUE" : "");
 //                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
-                insert = String.format(ITALIC + "ALTER TABLE %s ADD COLUMN %s;" + RESET, tableName, columnDef);
+                replace = String.format(ITALIC + "ALTER TABLE %s ADD COLUMN %s;" + RESET, tableName, columnDef);
 
             }
             case "isUnique" -> {
@@ -286,6 +280,7 @@ public class GmaChecker {
                 insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT `%s` UNIQUE (%s);" + RESET, tableName,col.getName()+"_key", col.getName());
 
             }
+
             default -> {
                 System.out.println("\"No action for this type.\"");
                 return;
@@ -756,7 +751,7 @@ public class GmaChecker {
                         TriggerCheck check = new TriggerCheck(trigger.getName(), trigger.getTriggerType(), trigger.getTriggerString());
                         check.setType("trigger type");
                         check.setDifference("IDE: " + (trigger.getTriggerType() == null ? "null" : trigger.getTriggerType())
-                                + ", DB: " + (triggerDb.getTriggerType() == null ? "null" : triggerDb.getTriggerType()));
+                                            + ", DB: " + (triggerDb.getTriggerType() == null ? "null" : triggerDb.getTriggerType()));
                         triggerCheckList.add(check);
                     }
 
@@ -767,7 +762,7 @@ public class GmaChecker {
                         TriggerCheck check = new TriggerCheck(trigger.getName(), trigger.getTriggerType(), trigger.getTriggerString());
                         check.setType("trigger content");
                         check.setDifference("IDE: " + (trigger.getTriggerString() == null ? "null" : trigger.getTriggerString())
-                                + ", DB: " + (triggerDb.getTriggerString() == null ? "null" : triggerDb.getTriggerString()));
+                                            + ", DB: " + (triggerDb.getTriggerString() == null ? "null" : triggerDb.getTriggerString()));
                         triggerCheckList.add(check);
                     }
                 }
@@ -821,7 +816,7 @@ public class GmaChecker {
                     ColCheck colCheck = new ColCheck(col.getName(), col.getType());
                     colCheck.setType("type");
                     colCheck.setDifference("IDE: " + col.getType() + ", DB: " + colDb.getType());
-
+                    colCheck.setColumn(col);
                     colCheckList.add(colCheck);
                 }
                 // Compare nullable, unique, PK
@@ -844,6 +839,16 @@ public class GmaChecker {
                     colCheck.setType("isPrimaryKey");
                     colCheck.setDifference("IDE: " + col.isPrimaryKey() + ", DB: " + colDb.isPrimaryKey());
                     colCheckList.add(colCheck);
+                    colCheck.setColumn(col);
+                }
+                if(col.getDefaultValue()!=colDb.getDefaultValue()){
+                    ColCheck colCheck = new ColCheck(col.getName(),col.getType());
+                    colCheck.setType("defaultValue");
+                    colCheck.setDifference("IDE: " + col.getDefaultValue() + ", DB: " + colDb.getDefaultValue());
+                    colCheck.setColumn(col);
+                    colCheckList.add(colCheck);
+
+
                 }
             }
 
@@ -922,9 +927,9 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "ColCheck{" +
-                    "type='" + type + '\'' +
-                    ", difference='" + difference + '\'' +
-                    '}';
+                   "type='" + type + '\'' +
+                   ", difference='" + difference + '\'' +
+                   '}';
         }
     }
 
@@ -1002,12 +1007,12 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TabCheck{" +
-                    "type='" + type + '\'' +
-                    ", difference='" + difference + '\'' +
-                    ", colCheckList=" + colCheckList +
-                    ", triggerCheckList=" + triggerCheckList +
-                    ", indexesCheckList=" + indexesCheckList +
-                    '}';
+                   "type='" + type + '\'' +
+                   ", difference='" + difference + '\'' +
+                   ", colCheckList=" + colCheckList +
+                   ", triggerCheckList=" + triggerCheckList +
+                   ", indexesCheckList=" + indexesCheckList +
+                   '}';
         }
     }
 
@@ -1069,10 +1074,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TriggerCheck{" +
-                    "type='" + type + '\'' +
-                    ", difference='" + difference + '\'' +
+                   "type='" + type + '\'' +
+                   ", difference='" + difference + '\'' +
 
-                    '}';
+                   '}';
         }
     }
 
@@ -1124,10 +1129,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "IndexesCheck{" +
-                    "type='" + type + '\'' +
-                    ", difference='" + difference + '\'' +
+                   "type='" + type + '\'' +
+                   ", difference='" + difference + '\'' +
 
-                    '}';
+                   '}';
         }
     }
 
@@ -1181,10 +1186,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "IndexesCheck{" +
-                    "type='" + type + '\'' +
-                    ", difference='" + difference + '\'' +
+                   "type='" + type + '\'' +
+                   ", difference='" + difference + '\'' +
 
-                    '}';
+                   '}';
         }
     }
 
@@ -1298,12 +1303,12 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TableChecker{" +
-                    "name='" + name + '\'' +
-                    ", tabCheckList=" + tabCheckList +
-                    ", colCheckMap=" + colCheckMap +
-                    ", triggerCheckMap=" + triggerCheckMap +
-                    ", indexesCheckMap=" + indexesCheckMap +
-                    '}';
+                   "name='" + name + '\'' +
+                   ", tabCheckList=" + tabCheckList +
+                   ", colCheckMap=" + colCheckMap +
+                   ", triggerCheckMap=" + triggerCheckMap +
+                   ", indexesCheckMap=" + indexesCheckMap +
+                   '}';
         }
     }
 
@@ -1347,8 +1352,8 @@ public class GmaChecker {
     @Override
     public String toString() {
         return "GmaChecker{" +
-                "name='" + name + '\'' +
-                ", maCheckers=" + maCheckers +
-                '}';
+               "name='" + name + '\'' +
+               ", maCheckers=" + maCheckers +
+               '}';
     }
 }
