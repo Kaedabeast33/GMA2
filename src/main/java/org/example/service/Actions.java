@@ -3,6 +3,7 @@ package org.example.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.example.ClassOutputCreator.templates.KdbGma;
+import org.example.ClassOutputCreator.templates.MAConfigTemplate;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.bank.OutputClassBank.KDBContext;
 import org.example.JsonBuilder.DB.DbToJsonExtractor;
@@ -111,7 +112,11 @@ public class Actions {
     // ------------------Build GMa Context for Dorm ------------------------
     public void buildGmaContext() throws InvocationTargetException, IllegalAccessException {
         for(KdbGma kdbGma : kdbContext.getGmaConfigList()){
+            for(MAConfigTemplate ma :kdbGma.getMa()){
+                System.out.println(ma.getJavaFolderPath());
+            }
             GMAJson gma = jsonBuilder.buildJsonOfGma(kdbGma);
+
             kdbContext.addGMA(gma);
         }
 

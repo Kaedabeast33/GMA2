@@ -310,12 +310,20 @@ public class GmaChecker {
                     """ + RESET, triggerName, triggerType, tableName, triggerContent);
             case "trigger DB" ->
                     replace = String.format(ITALIC + "DROP TRIGGER %s.`%s`;" + RESET, schemaName, triggerName);
+            case "trigger content" -> {
+                replace = String.format(ITALIC + "DROP TRIGGER %s.`%s`;" + RESET, schemaName, triggerName);
+                insert=String.format(ITALIC + """
+                    DELIMITER $$\n\t\tCREATE TRIGGER `%s` %s ON `%s` FOR EACH ROW %s$$\nDELIMITER ;
+                    """ + RESET, triggerName, triggerType, tableName, triggerContent);
+
+            }
             default -> {
                 System.out.println("\"No action for this type.\"");
                 return;
             }
         }
 
+        System.out.println("\n\n");
         if (insert != null) System.out.println(insert);
         if (replace != null) System.out.println(replace);
 
@@ -751,18 +759,19 @@ public class GmaChecker {
                         TriggerCheck check = new TriggerCheck(trigger.getName(), trigger.getTriggerType(), trigger.getTriggerString());
                         check.setType("trigger type");
                         check.setDifference("IDE: " + (trigger.getTriggerType() == null ? "null" : trigger.getTriggerType())
-                                            + ", DB: " + (triggerDb.getTriggerType() == null ? "null" : triggerDb.getTriggerType()));
+                                + ", DB: " + (triggerDb.getTriggerType() == null ? "null" : triggerDb.getTriggerType()));
                         triggerCheckList.add(check);
                     }
 
                     // Trigger string difference
-                    String ideStr = trigger.getTriggerString() == null ? "" : trigger.getTriggerString().replaceAll("\\s+", " ").trim();
-                    String dbStr = triggerDb.getTriggerString() == null ? "" : triggerDb.getTriggerString().replaceAll("\\s+", " ").trim();
+                    String ideStr = trigger.getTriggerString() == null ? "" : trigger.getTriggerString().replaceAll("\\s+", "").toLowerCase().trim();
+                    String dbStr = triggerDb.getTriggerString() == null ? "" : triggerDb.getTriggerString().replaceAll("\\s+", "").toLowerCase().trim();
+
                     if (!Objects.equals(ideStr, dbStr)) {
                         TriggerCheck check = new TriggerCheck(trigger.getName(), trigger.getTriggerType(), trigger.getTriggerString());
                         check.setType("trigger content");
                         check.setDifference("IDE: " + (trigger.getTriggerString() == null ? "null" : trigger.getTriggerString())
-                                            + ", DB: " + (triggerDb.getTriggerString() == null ? "null" : triggerDb.getTriggerString()));
+                                + ", DB: " + (triggerDb.getTriggerString() == null ? "null" : triggerDb.getTriggerString()));
                         triggerCheckList.add(check);
                     }
                 }
@@ -841,14 +850,14 @@ public class GmaChecker {
                     colCheckList.add(colCheck);
                     colCheck.setColumn(col);
                 }
-                if(col.getDefaultValue()!=colDb.getDefaultValue()){
-                    ColCheck colCheck = new ColCheck(col.getName(),col.getType());
+                if (!Objects.equals(
+                        Optional.ofNullable(col.getDefaultValue()).orElse("").trim(),
+                        Optional.ofNullable(colDb.getDefaultValue()).orElse("").trim())) {
+                    ColCheck colCheck = new ColCheck(col.getName(), col.getType());
                     colCheck.setType("defaultValue");
                     colCheck.setDifference("IDE: " + col.getDefaultValue() + ", DB: " + colDb.getDefaultValue());
                     colCheck.setColumn(col);
                     colCheckList.add(colCheck);
-
-
                 }
             }
 
@@ -927,9 +936,9 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "ColCheck{" +
-                   "type='" + type + '\'' +
-                   ", difference='" + difference + '\'' +
-                   '}';
+                    "type='" + type + '\'' +
+                    ", difference='" + difference + '\'' +
+                    '}';
         }
     }
 
@@ -1007,12 +1016,12 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TabCheck{" +
-                   "type='" + type + '\'' +
-                   ", difference='" + difference + '\'' +
-                   ", colCheckList=" + colCheckList +
-                   ", triggerCheckList=" + triggerCheckList +
-                   ", indexesCheckList=" + indexesCheckList +
-                   '}';
+                    "type='" + type + '\'' +
+                    ", difference='" + difference + '\'' +
+                    ", colCheckList=" + colCheckList +
+                    ", triggerCheckList=" + triggerCheckList +
+                    ", indexesCheckList=" + indexesCheckList +
+                    '}';
         }
     }
 
@@ -1074,10 +1083,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TriggerCheck{" +
-                   "type='" + type + '\'' +
-                   ", difference='" + difference + '\'' +
+                    "type='" + type + '\'' +
+                    ", difference='" + difference + '\'' +
 
-                   '}';
+                    '}';
         }
     }
 
@@ -1129,10 +1138,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "IndexesCheck{" +
-                   "type='" + type + '\'' +
-                   ", difference='" + difference + '\'' +
+                    "type='" + type + '\'' +
+                    ", difference='" + difference + '\'' +
 
-                   '}';
+                    '}';
         }
     }
 
@@ -1186,10 +1195,10 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "IndexesCheck{" +
-                   "type='" + type + '\'' +
-                   ", difference='" + difference + '\'' +
+                    "type='" + type + '\'' +
+                    ", difference='" + difference + '\'' +
 
-                   '}';
+                    '}';
         }
     }
 
@@ -1303,12 +1312,12 @@ public class GmaChecker {
         @Override
         public String toString() {
             return "TableChecker{" +
-                   "name='" + name + '\'' +
-                   ", tabCheckList=" + tabCheckList +
-                   ", colCheckMap=" + colCheckMap +
-                   ", triggerCheckMap=" + triggerCheckMap +
-                   ", indexesCheckMap=" + indexesCheckMap +
-                   '}';
+                    "name='" + name + '\'' +
+                    ", tabCheckList=" + tabCheckList +
+                    ", colCheckMap=" + colCheckMap +
+                    ", triggerCheckMap=" + triggerCheckMap +
+                    ", indexesCheckMap=" + indexesCheckMap +
+                    '}';
         }
     }
 
@@ -1352,8 +1361,8 @@ public class GmaChecker {
     @Override
     public String toString() {
         return "GmaChecker{" +
-               "name='" + name + '\'' +
-               ", maCheckers=" + maCheckers +
-               '}';
+                "name='" + name + '\'' +
+                ", maCheckers=" + maCheckers +
+                '}';
     }
 }

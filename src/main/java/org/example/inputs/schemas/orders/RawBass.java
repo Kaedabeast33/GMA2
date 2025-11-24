@@ -36,7 +36,6 @@ public class RawBass {
 
     @KdbIndex(indexGroups = {"create_time_idx"})
     @KdbColumn(name = "create_time")
-//    @CsvCustomBindByName(column = "Create Time", converter = MultiFormatDateConverter.class)
     private Timestamp createTime;
 
     @KdbColumn(name = "customer_name")
@@ -48,7 +47,6 @@ public class RawBass {
     private String customerType;
 
     @KdbColumn(name = "due_date")
-//    @CsvCustomBindByName(column = "Due Date", converter = MultiFormatDateConverter.class)
     private Timestamp dueDate;
 
     @KdbColumn(name = "internet_action_code")
@@ -130,7 +128,6 @@ public class RawBass {
     private String state;
 
     @KdbColumn(name = "status_change_date")
-//    @CsvCustomBindByName(column = "Status Change Date", converter = MultiFormatDateConverter.class)
     private Timestamp statusChangeDate;
 
     @KdbColumn(name = "street_address")
@@ -499,50 +496,6 @@ public class RawBass {
     }
 
 
-//    public TAB_raw_bass convertToEntity() throws Exception {
-//        TAB_raw_bass bass = new TAB_raw_bass();
-//
-//        bass.getCOL_account_number().setEntityValue(getAccountNumber());
-//        bass.getCOL_bass_order_id().setEntityValue(getBassOrderId());
-//        bass.getCOL_billing_number().setEntityValue(getBillingNumber());
-//        bass.getCOL_city().setEntityValue(getCity());
-//        bass.getCOL_create_time().setEntityValue(getCreateTime());
-//        bass.getCOL_customer_name().setEntityValue(getCustomerName());
-//        bass.getCOL_customer_type().setEntityValue(getCustomerType());
-//        bass.getCOL_due_date().setEntityValue(getDueDate());
-//        bass.getCOL_internet_action_code().setEntityValue(getInternetActionCode());
-//        bass.getCOL_internet_product_family().setEntityValue(getInternetProductFamily());
-//        bass.getCOL_internet_product_name().setEntityValue(getInternetProductName());
-//        bass.getCOL_internet_product_status().setEntityValue(getInternetProductStatus());
-//        bass.getCOL_internet_quantity().setEntityValue(getInternetQuantity());
-//        bass.getCOL_internet_usoc().setEntityValue(getInternetUsoc());
-//        bass.getCOL_master_agent_id().setEntityValue(getMasterAgentId());
-//        bass.getCOL_master_agent_name().setEntityValue(getMasterAgentName());
-//        bass.getCOL_order_number().setEntityValue(getOrderNumber());
-//        bass.getCOL_order_status().setEntityValue(getOrderStatus());
-//        bass.getCOL_order_type().setEntityValue(getOrderType());
-//        bass.getCOL_outside_sales_rep().setEntityValue(getOutsideSalesRep());
-//        bass.getCOL_partner_reference_id().setEntityValue(getPartnerReferenceId());
-//        bass.getCOL_regional_sales_manager().setEntityValue(getRegionalSalesManager());
-//        bass.getCOL_sales_code().setEntityValue(getSalesCode());
-//        bass.getCOL_sales_person_id().setEntityValue(getSalesPersonId());
-//        bass.getCOL_sales_person_name().setEntityValue(getSalesPersonName());
-//        bass.getCOL_sales_persons_username().setEntityValue(getSalesPersonsUsername());
-//        bass.getCOL_state().setEntityValue(getState());
-//        bass.getCOL_status_change_date().setEntityValue(getStatusChangeDate());
-//        bass.getCOL_street_address().setEntityValue(getStreetAddress());
-//        bass.getCOL_sub_agent_name().setEntityValue(getSubAgentName());
-//        bass.getCOL_sub_agent_username().setEntityValue(getSubAgentUsername());
-//        bass.getCOL_subagent_id().setEntityValue(getSubAgentId());
-//        bass.getCOL_type_of_sale().setEntityValue(getTypeOfSale());
-//        bass.getCOL_unit().setEntityValue(getUnit());
-//        bass.getCOL_wtn().setEntityValue(getWtn());
-//        bass.getCOL_zip_code().setEntityValue(getZipCode());
-//        bass.getCOL_latest_insert_date().setEntityValue(getLatestInsertDate());
-//        bass.getCOL_db_id().setEntityValue(getDbId());
-//        bass.getCOL_dsl_migrator().setEntityValue(getDslMigrator());
-//
-//        return bass;
-//    }
+
 
 }

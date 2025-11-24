@@ -42,6 +42,71 @@ public enum KDBContext {
 
     }
 
+    public String getQueryByCol(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols) {
+        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
+        if (ma != null) {
+            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
+            if (table != null) {
+                List<String> whereClause = new ArrayList<>();
+                for(ColumnTemplate byCol: byCols){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(byCol.getName()).append(" ").append(byCol.getQueryMatchString());
+                    whereClause.add(sb.toString());
+                }
+                String query = String.format("""
+                        SELECT
+                            *
+                        FROM
+                            %s.%s
+                        WHERE
+                            %s
+                        """,maName,tableName,String.join(" AND ",whereClause));
+                System.out.println(query);
+                return query;
+            } else {
+                System.out.println("Table " + tableName + " not found in MA " + maName);
+            }
+        } else {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+        }
+
+        return "";
+    }
+
+    public String getQueryByCol(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols,List<ColumnTemplate> getCols) {
+        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
+        if (ma != null) {
+            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
+            if (table != null) {
+                String columsSb = getCols.stream().map(ColumnTemplate::getName).collect(Collectors.joining(",\n"));
+
+
+                List<String> whereClause = new ArrayList<>();
+                for(ColumnTemplate byCol: byCols){
+                    whereClause.add(byCol.getName() + " " + byCol.getQueryMatchString());
+                }
+                String query = String.format("""
+                        SELECT
+                            %s
+                        FROM
+                            %s.%s
+                        WHERE
+                            %s
+                        """,columsSb,maName,tableName,String.join(" AND ",whereClause));
+                System.out.println(query);
+                return query;
+            } else {
+                System.out.println("Table " + tableName + " not found in MA " + maName);
+            }
+        } else {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+        }
+
+        return "";
+    }
+
     public List<ColumnJson> getColumns(String gmaName, String maName, String tableName) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
 //        System.out.println(gmaJsonMap.getName()+" gma name");

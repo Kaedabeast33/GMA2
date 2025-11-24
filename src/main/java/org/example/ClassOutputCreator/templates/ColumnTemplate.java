@@ -36,13 +36,13 @@ public abstract class ColumnTemplate {
     private EntityValue<?> entityValue;
 
     private Class<?> kdbConverter;
+    private String queryMatchString;
 
-
-    public ColumnTemplate(String name, String colId,
-                          String description, String[] tag, boolean isNullable, boolean isEditable,
-                          boolean unique, boolean isRequired, String type, Object defaultValue,
-                          String[] columnGroups, boolean uniqueIdentifier,
-                          String[] uniqueIdentifierGroupNames, boolean isIndex
+    protected ColumnTemplate(String name, String colId,
+                             String description, String[] tag, boolean isNullable, boolean isEditable,
+                             boolean unique, boolean isRequired, String type, Object defaultValue,
+                             String[] columnGroups, boolean uniqueIdentifier,
+                             String[] uniqueIdentifierGroupNames, boolean isIndex
             , String[] indexGroups, List<ColumnTemplate> referenceColumns, Class<?> fieldType, Class<?> kdbConverter
     ) {
 
@@ -110,6 +110,14 @@ public abstract class ColumnTemplate {
         this.entityValue = converted;
     }
 
+
+    public String getQueryMatchString() {
+        return queryMatchString;
+    }
+
+    public void setQueryMatchString(String queryMatchString) {
+        this.queryMatchString = queryMatchString;
+    }
 
     public String getName() {
         return name;
@@ -186,3 +194,4 @@ public abstract class ColumnTemplate {
 
     }
 }
+

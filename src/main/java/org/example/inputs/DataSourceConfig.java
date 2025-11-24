@@ -33,6 +33,13 @@ public class DataSourceConfig {
     }
 
     @Bean
+    @ConfigurationProperties("kdb.datasource.api")
+    public KdbDataBaseProperties propertiesApi() {
+        return new KdbDataBaseProperties();
+    }
+
+
+    @Bean
     @ConfigurationProperties("kdb.datasource.commissions")
     public KdbDataBaseProperties propertiesCommissions() {
         return new KdbDataBaseProperties();
@@ -73,8 +80,11 @@ public class DataSourceConfig {
 
         gma.setGmaSettings(gmaSettings);
 
+
+
         gma.setMa(getSchemas());
 //        kdbDatabase.initKdbManager();
+
         context.addGmaConfig(gma);
         return gma;
     }
@@ -97,6 +107,7 @@ public class DataSourceConfig {
         schema.setTransactionManagerBeanName(propertiesEmployeealignment().getTransactionBeanName());
 
         schema.setJavaFolderPath(propertiesEmployeealignment().getJavaFolderPath());
+        System.out.println(schema.getJavaFolderPath()+" plooop");
 
 //        schema.initKdbManager();
 
@@ -160,6 +171,19 @@ public class DataSourceConfig {
         schema6.setJavaFolderPath(propertiesReports().getJavaFolderPath());
         schema6.setTransactionManagerBeanName(propertiesReports().getTransactionBeanName());
 
+        MAConfigTemplate schema7 = new MAConfigTemplate();
+        schema7.setName(propertiesApi().getSchema());
+        schema7.setDescription("this i the schema where orders are kept ");
+        schema7.setTags(new String[]{"api", "keys"});
+        schema7.setMaSettings(maSettings);
+        schema7.setName("api");
+        schema7.setJdbcConnectionUrl(propertiesApi().getUrl());
+        schema7.setUsername(propertiesApi().getUsername());
+        schema7.setPassword(propertiesApi().getPassword());
+        schema7.setTransactionManagerBeanName(propertiesApi().getTransactionBeanName());
+
+        schema7.setJavaFolderPath(propertiesApi().getJavaFolderPath());
+
 
 //        schema2.initKdbManager();
 
@@ -169,7 +193,8 @@ public class DataSourceConfig {
                 schema3,
                 schema4,
                 schema5,
-                schema6
+                schema6,
+                schema7
         );
     }
 

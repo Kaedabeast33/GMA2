@@ -22,15 +22,12 @@ public class RawTmobile {
     private String dbId = UUID.randomUUID().toString();
 
     @KdbColumn(name = "weekending_date")
-////    @CsvCustomBindByName(column = "Weekending Date", converter = MultiFormatDateConverter.class)
     private Timestamp weekendingDate;
 
     @KdbColumn(name = "order_date")
-////    @CsvCustomBindByName(column = "Order Date", converter = MultiFormatDateConverter.class)
     private Timestamp orderDate;
 
     @KdbColumn(name = "track_until_date")
-////    @CsvCustomBindByName(column = "Track Until Date", converter = MultiFormatDateConverter.class)
     private Timestamp trackUntilDate;
 
     @KdbColumn(name = "order_type")
@@ -86,23 +83,18 @@ public class RawTmobile {
     private String accountStatus;
 
     @KdbColumn(name = "est_installation_date")
-//    @CsvCustomBindByName(column = "Est. Installation Date", converter = MultiFormatDateConverter.class)
     private Timestamp estInstallationDate;
 
     @KdbColumn(name = "order_cancellation_date")
-//    @CsvCustomBindByName(column = "Order Cancellation Date", converter = MultiFormatDateConverter.class)
     private Timestamp orderCancellationDate;
 
     @KdbColumn(name = "activation_date")
-//    @CsvCustomBindByName(column = "Activation Date", converter = MultiFormatDateConverter.class)
     private Timestamp activationDate;
 
     @KdbColumn(name = "termination_request_date")
-//    @CsvCustomBindByName(column = "Termination Request Date", converter = MultiFormatDateConverter.class)
     private Timestamp terminationRequestDate;
 
     @KdbColumn(name = "deactivation_date")
-//    @CsvCustomBindByName(column = "Deactivation Date", converter = MultiFormatDateConverter.class)
     private Timestamp deactivationDate;
 
     @KdbColumn(name = "vol_involuntary")
@@ -114,7 +106,6 @@ public class RawTmobile {
     private String cancellationReason;
 
     @KdbColumn(name = "eligibility_date")
-//    @CsvCustomBindByName(column = "eligibility date", converter = MultiFormatDateConverter.class)
     private Timestamp eligibilityDate;
 
     @KdbColumn(name = "market")
@@ -356,7 +347,7 @@ public class RawTmobile {
         this.partner = partner;
     }
 
-//
+
 //    public TAB_raw_tmobile convertToEntity() throws Exception {
 //        TAB_raw_tmobile tmobile = new TAB_raw_tmobile();
 //

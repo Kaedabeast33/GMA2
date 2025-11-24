@@ -136,48 +136,48 @@ public class ManualPayroll {
     public static String before_update_manual_payroll() {
         return """
                 BEGIN
-                    -- 1st block: product type change
-                    IF NOT (OLD.product_type <=> NEW.product_type) THEN
-                        SET NEW.mo_reconciliation_ref_id = NULL;
-                    END IF;
+                       -- 1st block: product type change
+                       IF NOT (OLD.product_type <=> NEW.product_type) THEN
+                           SET NEW.mo_reconciliation_ref_id = NULL;
+                       END IF;
                 
-                    -- 2nd block: order or account info change
-                    IF NOT (OLD.order_number <=> NEW.order_number)
-                        OR NOT (OLD.account_number <=> NEW.account_number)
-                        OR NOT (OLD.customer_name <=> NEW.customer_name)
-                        OR NOT (OLD.mobile_number <=> NEW.mobile_number)
-                        OR NOT (OLD.carrier_system <=> NEW.carrier_system)
-                    THEN
-                        SET NEW.mo_reconciliation_ref_id = NULL;
-                        SET NEW.mo_reconciliation_ref_id_2 = NULL;
-                        SET NEW.mo_reconciliation_ref_id_3 = NULL;
-                        SET NEW.mo_reconciliation_ref_id_4 = NULL;
-                        SET NEW.mo_general_ref_id = NULL;
-                    END IF;
+                       -- 2nd block: order or account info change
+                       IF NOT (OLD.order_number <=> NEW.order_number)
+                           OR NOT (OLD.account_number <=> NEW.account_number)
+                           OR NOT (OLD.customer_name <=> NEW.customer_name)
+                           OR NOT (OLD.mobile_number <=> NEW.mobile_number)
+                           OR NOT (OLD.carrier_system <=> NEW.carrier_system) THEN
+                          
+                           SET NEW.mo_reconciliation_ref_id = NULL;
+                           SET NEW.mo_reconciliation_ref_id_2 = NULL;
+                           SET NEW.mo_reconciliation_ref_id_3 = NULL;
+                           SET NEW.mo_reconciliation_ref_id_4 = NULL;
+                           SET NEW.mo_general_ref_id = NULL;
+                       END IF;
                 
-                    -- 3rd block: employee or alignment changes
-                    IF NOT (OLD.employee_id <=> NEW.employee_id)
-                        OR NOT (OLD.pay_date <=> NEW.pay_date)
-                        OR NOT (OLD.seller_ref_id <=> NEW.seller_ref_id)
-                        OR NOT (OLD.upline_ref_id <=> NEW.upline_ref_id)
-                        OR NOT (OLD.seller_ref_id_level_1 <=> NEW.seller_ref_id_level_1)
-                        OR NOT (OLD.upline_ref_id_level_1 <=> NEW.upline_ref_id_level_1)
-                        OR NOT (OLD.seller_ref_id_level_2 <=> NEW.seller_ref_id_level_2)
-                        OR NOT (OLD.upline_ref_id_level_2 <=> NEW.upline_ref_id_level_2)
-                        OR NOT (OLD.seller_ref_id_level_3 <=> NEW.seller_ref_id_level_3)
-                        OR NOT (OLD.upline_ref_id_level_3 <=> NEW.upline_ref_id_level_3)
-                    THEN
-                        SET NEW.seller_ref_id = NULL;
-                        SET NEW.upline_ref_id = NULL;
-                        SET NEW.seller_ref_id_level_1 = NULL;
-                        SET NEW.upline_ref_id_level_1 = NULL;
-                        SET NEW.seller_ref_id_level_2 = NULL;
-                        SET NEW.upline_ref_id_level_2 = NULL;
-                        SET NEW.seller_ref_id_level_3 = NULL;
-                        SET NEW.upline_ref_id_level_3 = NULL;
-                    END IF;
+                       -- 3rd block: employee or alignment changes
+                       IF NOT (OLD.employee_id <=> NEW.employee_id)
+                           OR NOT (OLD.pay_date <=> NEW.pay_date)
+                           OR (NEW.seller_ref_id IS NULL AND OLD.seller_ref_id IS NOT NULL)
+                           OR (NEW.upline_ref_id IS NULL AND OLD.upline_ref_id IS NOT NULL)
+                           OR (NEW.seller_ref_id_level_1 IS NULL AND OLD.seller_ref_id_level_1 IS NOT NULL)
+                           OR (NEW.upline_ref_id_level_1 IS NULL AND OLD.upline_ref_id_level_1 IS NOT NULL)
+                           OR (NEW.seller_ref_id_level_2 IS NULL AND OLD.seller_ref_id_level_2 IS NOT NULL)
+                           OR (NEW.upline_ref_id_level_2 IS NULL AND OLD.upline_ref_id_level_2 IS NOT NULL)
+                           OR (NEW.seller_ref_id_level_3 IS NULL AND OLD.seller_ref_id_level_3 IS NOT NULL)
+                           OR (NEW.upline_ref_id_level_3 IS NULL AND OLD.upline_ref_id_level_3 IS NOT NULL) THEN   -- ← removed the rogue 's'
                 
-                END
+                           -- Clear all alignment fields
+                           SET NEW.seller_ref_id = NULL;
+                           SET NEW.upline_ref_id = NULL;
+                           SET NEW.seller_ref_id_level_1 = NULL;
+                           SET NEW.upline_ref_id_level_1 = NULL;
+                           SET NEW.seller_ref_id_level_2 = NULL;
+                           SET NEW.upline_ref_id_level_2 = NULL;
+                           SET NEW.seller_ref_id_level_3 = NULL;
+                           SET NEW.upline_ref_id_level_3 = NULL;
+                       END IF;
+                   END
                 """;
     }
 }

@@ -117,8 +117,28 @@ public class TableClassCreator {
         generateGetValues(tab.getColumns(), path);
 
         generateUploadStatements(path);
+        generateQueryMethods(path);
 
 
+    }
+
+    private void generateQueryMethods(Path path) {
+        String getQueryByCol = """
+                    @Override
+                    public String getQueryByCols(List<ColumnTemplate> byColumns) {
+                        return context.getQueryByColumns(this.getGmaName(),this.getMaName(),this.getName(),byColumns);
+                    }
+                    
+                    @Override
+                    public String getQueryByCols(List<ColumnTemplate>byColumns,List<ColumnTemplate> getColumns){
+                        return context.getQueryByColumns(this.getGmaName(),this.getMaName(),this.getName(),byColumns,getColumns);
+                    }
+                """;
+        try {
+            Files.writeString(path, getQueryByCol, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void generateUploadStatements(Path path) throws IOException {
