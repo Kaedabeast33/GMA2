@@ -21,6 +21,10 @@ public class ColumnDTO {
 
     String fieldType;
 
+    public ColumnDTO(){
+
+    }
+
     public ColumnDTO(ColumnJson column) {
 //        System.out.println("DTO COLUMN NAME: " + column.getName());
         this.name = column.getName();

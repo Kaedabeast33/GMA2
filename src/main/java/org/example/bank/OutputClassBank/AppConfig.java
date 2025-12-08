@@ -25,7 +25,19 @@ public class AppConfig {
 
 
 
+    public static String getJdbcUrl() {
+//        System.out.println("JDBC URL: " + properties.getProperty("app.jdbc.url", "jdbc:mysql://localhost:3306/mydb"));
+        return properties.getProperty("app.jdbc.url", "jdbc:mysql://localhost:3306/mydb");
+    }
 
+    public static String getJdbcUser() {
+//        System.out.println("JDBC URL: " + properties.getProperty("app.jdbc.url", "jdbc:mysql://localhost:3306/mydb"));
+        return properties.getProperty("app.jdbc.username", "user");
+    }
+
+    public static String getJdbcPassword() {
+        return properties.getProperty("app.jdbc.password", "password");
+    }
 
     public static String getOutputDir() {
         System.out.println("Output Dir: " + properties.getProperty("app.outputDir", "output"));

@@ -11,11 +11,17 @@ import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static org.example.bank.OutputClassBank.AppConfig.*;
+import static org.example.bank.OutputClassBank.QueryResult.getQueryResultObj;
+import static org.example.bank.commonValues.ColumnConverter.toPersonaJson;
 
 public enum KDBContext {
     KDB_CONTEXT;
@@ -42,7 +48,46 @@ public enum KDBContext {
 
     }
 
-    public String getQueryByCol(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols) {
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(getJdbcUrl(), getJdbcUser(), getJdbcPassword());
+    }
+
+
+
+
+
+    public QueryResult getQuery(String gmaName,String maName, String tableName,List<KdbColumnPersona> getCols) throws SQLException {
+        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(),maName)).findFirst().orElse(null);
+        if (ma != null) {
+            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
+            if (table != null) {
+                List<String> whereClause = new ArrayList<>();
+                for(KdbColumnPersona   getCol: getCols){
+                    whereClause.add(getCol.getName());
+                }
+
+                String query = String.format("""
+                        SELECT
+                            %s
+                        FROM
+                            %s.%s
+                        
+                            
+                        """,String.join(",\n ",whereClause),maName,tableName);
+                System.out.println(query);
+                return getQueryResultObj(getCols,query,getConnection());
+            } else {
+                System.out.println("Table " + tableName + " not found in MA " + maName);
+            }
+        } else {
+            System.out.println("MA " + maName + " not found in GMA " + gmaName);
+        }
+
+        return null;
+    }
+
+    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols) throws SQLException {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
         if (ma != null) {
@@ -50,9 +95,14 @@ public enum KDBContext {
             if (table != null) {
                 List<String> whereClause = new ArrayList<>();
                 for(ColumnTemplate byCol: byCols){
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(byCol.getName()).append(" ").append(byCol.getQueryMatchString());
-                    whereClause.add(sb.toString());
+
+                    if(byCol.getQueryMatchStrings().size()>1){
+                        List<String> inClause = byCol.getQueryMatchStrings().stream().map(s-> "'"+s+"'").toList();
+                        whereClause.add(byCol.getName() + " IN ( " + String.join(",",inClause) + " )");
+
+                    }else {
+                        whereClause.add(byCol.getName() + " = " + "'" + byCol.getQueryMatchStrings().get(0) + "'");
+                    }
                 }
                 String query = String.format("""
                         SELECT
@@ -63,7 +113,8 @@ public enum KDBContext {
                             %s
                         """,maName,tableName,String.join(" AND ",whereClause));
                 System.out.println(query);
-                return query;
+
+                return  getQueryResultObj( toPersonaJson(Arrays.stream(table.getColumns()).toList()),query,getConnection());
             } else {
                 System.out.println("Table " + tableName + " not found in MA " + maName);
             }
@@ -71,21 +122,32 @@ public enum KDBContext {
             System.out.println("MA " + maName + " not found in GMA " + gmaName);
         }
 
-        return "";
+        return null;
     }
 
-    public String getQueryByCol(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols,List<ColumnTemplate> getCols) {
+
+
+
+
+
+    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols,List<KdbColumnPersona> getCols) throws SQLException {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
         if (ma != null) {
             TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
             if (table != null) {
-                String columsSb = getCols.stream().map(ColumnTemplate::getName).collect(Collectors.joining(",\n"));
+                String columsSb = getCols.stream().map(KdbColumnPersona::getName).collect(Collectors.joining(",\n"));
 
 
                 List<String> whereClause = new ArrayList<>();
                 for(ColumnTemplate byCol: byCols){
-                    whereClause.add(byCol.getName() + " " + byCol.getQueryMatchString());
+                    if(byCol.getQueryMatchStrings().size()>1){
+                        List<String> inClause = byCol.getQueryMatchStrings().stream().map(s-> "'"+s+"'").toList();
+                        whereClause.add(byCol.getName() + " IN ( " + String.join(",",inClause) + " )");
+
+                    }else {
+                        whereClause.add(byCol.getName() + " = " + "'" + byCol.getQueryMatchStrings().get(0) + "'");
+                    }
                 }
                 String query = String.format("""
                         SELECT
@@ -96,7 +158,7 @@ public enum KDBContext {
                             %s
                         """,columsSb,maName,tableName,String.join(" AND ",whereClause));
                 System.out.println(query);
-                return query;
+                return getQueryResultObj(getCols,query,getConnection()) ;
             } else {
                 System.out.println("Table " + tableName + " not found in MA " + maName);
             }
@@ -104,8 +166,13 @@ public enum KDBContext {
             System.out.println("MA " + maName + " not found in GMA " + gmaName);
         }
 
-        return "";
+        return null;
     }
+
+
+
+
+
 
     public List<ColumnJson> getColumns(String gmaName, String maName, String tableName) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
@@ -316,6 +383,61 @@ public enum KDBContext {
                 throw new RuntimeException(e);
             }
         }
+
+        entityManager.createNativeQuery(drop).executeUpdate();
+    }
+
+    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException {
+
+        String tableName = table.getTableName();
+        String insertTableName = tableName + "_insert";
+        String columns = String.join(",", table.getColumnsString());
+
+        String init = "INSERT INTO " + insertTableName + " (" + columns + ") VALUES\n";
+        StringBuilder sb = new StringBuilder(init);
+
+        String drop = "DROP TABLE IF EXISTS " + insertTableName + ";\n";
+        String create = "CREATE TABLE IF NOT EXISTS " + insertTableName + " LIKE " + tableName + ";\n";
+        entityManager.createNativeQuery(drop).executeUpdate();
+        entityManager.createNativeQuery(create).executeUpdate();
+
+        int i = 0;
+        for (EntityInterface entity : entities) {
+            sb.append(entity.getValues());
+//            System.out.println(entity.getValues());
+            if (++i % 1000 == 0 || i == entities.size()) {
+//                System.out.println(sb);
+                saveEntities(sb, entityManager);
+                sb = new StringBuilder(init);
+            }
+        }
+
+        // Ensure the insertFunction runs in the same transaction
+        for(String upsertQuery : upsertStrings) {
+            System.out.println("Executing upsert query: " + upsertQuery);
+            try {
+                entityManager.createNativeQuery(upsertQuery).executeUpdate();
+            }catch (Exception e){
+                System.out.println("error executing upsert query: " + upsertQuery);
+                throw new RuntimeException(e);
+            }
+        }
+
+        for (String checkQuery : checks) {
+            System.out.println("Executing check query: " + checkQuery);
+            try {
+                List<?> resultList = entityManager.createNativeQuery(checkQuery).getResultList();
+                if (!resultList.isEmpty()) {
+                    throw new RuntimeException("Check query returned results: " + checkQuery);
+                }
+            } catch (Exception e) {
+                System.out.println("Error executing check query: " + checkQuery);
+                throw new RuntimeException(e);
+            }
+        }
+
+
+        entityManager.createNativeQuery(drop).executeUpdate();
     }
 
 //    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager) throws ParseException {
@@ -352,10 +474,10 @@ public enum KDBContext {
 
     public void saveEntities(StringBuilder sb, EntityManager entityManager) {
         sb.setLength(sb.length() - 1);
-        String modifiedString = sb.toString().replace("'null'", "NULL");
+        String modifiedString = sb.toString().replace("'null'", "NULL").replace("'DEFAULT'", "DEFAULT");
 //        System.out.println(modifiedString);
         try {
-//            System.out.println(modifiedString.substring(0, Math.min(modifiedString.length(), 10000)));
+            System.out.println(modifiedString.substring(0, Math.min(modifiedString.length(), 10000)));
             Files.write(Path.of("query.txt"), modifiedString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
 //            System.out.println(modifiedString);
 //            System.out.println("inserted batch 1000 records");
@@ -371,8 +493,9 @@ public enum KDBContext {
 
 
 
+
     public String getUploadDelete(String gmaName, String maName, String tableName,
-                                  List<ColumnTemplate> toDeleteBy, Boolean includeNullValues) {
+                                  List<KdbColumnPersona> toDeleteBy, Boolean includeNullValues) {
 
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         if (gmaJsonMap == null) {
@@ -419,8 +542,8 @@ public enum KDBContext {
 
 
     public String getUploadUpdate(String gmaName, String maName, String tableName,
-                                  List<ColumnTemplate> toUpdateBy, Boolean includeNullValues,
-                                  List<ColumnJson> updateColumns) {
+                                  List<KdbColumnPersona> toUpdateBy, Boolean includeNullValues,
+                                  List<KdbColumnPersona> updateColumns) {
 
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         if (gmaJsonMap == null) {
@@ -456,9 +579,9 @@ public enum KDBContext {
                 .collect(Collectors.joining(" AND "));
 
         // Filter columns to update: exclude primary keys, db_id, and columns used in join
-        Set<String> toUpdateByNames = toUpdateBy.stream().map(ColumnTemplate::getName).collect(Collectors.toSet());
-        List<ColumnJson> columnsToUpdate = updateColumns.stream()
-                .filter(c -> !c.getPrimaryKey() && !Objects.equals(c.getName(), "db_id") && !toUpdateByNames.contains(c.getName()))
+        Set<String> toUpdateByNames = toUpdateBy.stream().map(KdbColumnPersona::getName).collect(Collectors.toSet());
+        List<KdbColumnPersona> columnsToUpdate = updateColumns.stream()
+                .filter(c -> !c.isPrimaryKey() && !Objects.equals(c.getName(), "db_id") && !toUpdateByNames.contains(c.getName()))
                 .toList();
 
         // Build SET clause
@@ -478,7 +601,7 @@ public enum KDBContext {
     }
 
 
-    public String getUploadInsert(String gmaName, String maName, String tableName, List<ColumnTemplate> toInsertBy,Boolean includeNullValues,List<ColumnJson> insertColumns,Boolean includePrimaryKey) {
+    public String getUploadInsert(String gmaName, String maName, String tableName, List<KdbColumnPersona> toInsertBy,Boolean includeNullValues,List<KdbColumnPersona> insertColumns,Boolean includePrimaryKey) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         if (gmaJsonMap == null) {
             System.out.println("GMA " + gmaName + " not found");
@@ -513,12 +636,12 @@ public enum KDBContext {
                 .collect(Collectors.joining(" AND "));
 
         // Columns for insert
-        List<ColumnJson> colsToInsert = insertColumns.stream()
-                .filter(c -> includePrimaryKey || !c.getPrimaryKey())
+        List<KdbColumnPersona> colsToInsert = insertColumns.stream()
+                .filter(c -> includePrimaryKey || !c.isPrimaryKey())
                 .toList();
 
         String columns = colsToInsert.stream()
-                .map(ColumnJson::getName)
+                .map(KdbColumnPersona::getName)
                 .collect(Collectors.joining(", "));
 
         String values = colsToInsert.stream()
@@ -539,7 +662,7 @@ public enum KDBContext {
 
     }
 
-    public String getUploadInsert(String gmaName, String maName, String tableName) {
+    public String getUploadInsert(String gmaName, String maName, String tableName,Boolean includePrimaryKey) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
 
@@ -551,14 +674,39 @@ public enum KDBContext {
                 String tableNameInsert = tableName + "_insert";
 
 
+                List<String> columnsToInsert = Arrays.stream(table.getColumns())
+                        .filter(c -> {
+                            if (includePrimaryKey) {
+                                // include all columns, do not filter out anything
+                                return true;
+                            } else {
+                                // exclude primary keys and "db_id"
+                                return !c.getPrimaryKey() && !Objects.equals(c.getName(), "db_id");
+                            }
+                        }).map(ColumnJson::getName)
+                        .toList();
+
+
+                StringBuilder selectColumnsSb = new StringBuilder();
+                for (int i = 0; i < columnsToInsert.size(); i++) {
+                    selectColumnsSb.append("t2.");
+                    selectColumnsSb.append(columnsToInsert.get(i));
+                    if (i < columnsToInsert.size() - 1) {
+                        selectColumnsSb.append(", ");
+                    }
+                }
+
+
+
 
                 String insertQuery = String.format("""
                         INSERT INTO %s 
+                         (%s)
                         SELECT 
-                            *
+                            %s
                         FROM %s t2
                         
-                        """, tableName,tableNameInsert);
+                        """, tableName,String.join(",",columnsToInsert),selectColumnsSb,tableNameInsert);
 
                 return insertQuery;
 
@@ -573,7 +721,58 @@ public enum KDBContext {
 
     }
 
-    public String getUploadInsert(String gmaName, String maName, String tableName, List<ColumnTemplate> toInsertBy,Boolean includeNullValues) {
+    public String getUploadInsert(String gmaName, String maName, String tableName) {
+        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
+
+        if (ma != null) {
+            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
+            if (table != null) {
+//                 table.getColumns();
+
+                String tableNameInsert = tableName + "_insert";
+
+
+                List<String> columnsToInsert = Arrays.stream(table.getColumns())
+                        .map(ColumnJson::getName)
+                        .toList();
+
+
+                StringBuilder selectColumnsSb = new StringBuilder();
+                for (int i = 0; i < columnsToInsert.size(); i++) {
+                    selectColumnsSb.append("t2.");
+                    selectColumnsSb.append(columnsToInsert.get(i));
+                    if (i < columnsToInsert.size() - 1) {
+                        selectColumnsSb.append(", ");
+                    }
+                }
+
+
+
+
+                String insertQuery = String.format("""
+                        INSERT INTO %s 
+                         (%s)
+                        SELECT 
+                            %s
+                        FROM %s t2
+                        
+                        """, tableName,String.join(",",columnsToInsert),selectColumnsSb,tableNameInsert);
+
+                return insertQuery;
+
+
+            } else {
+                System.out.println("Table " + tableName + " not found in MA " + maName);
+                return "";
+            }
+        }
+        System.out.println("MA " + maName + " not found in GMA " + gmaName);
+        return "";
+
+    }
+
+    public String getUploadInsert(String gmaName, String maName, String tableName, List<KdbColumnPersona> toInsertBy,Boolean includeNullValues) {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         if (gmaJsonMap == null) {
             System.out.println("GMA " + gmaName + " not found");
@@ -631,4 +830,3 @@ public enum KDBContext {
 
 
 }
-

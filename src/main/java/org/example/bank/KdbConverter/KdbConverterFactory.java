@@ -8,7 +8,8 @@ public class KdbConverterFactory {
     private static final Map<String, KdbConverter<?, ?>> CONVERTER_MAP = new HashMap<>();
 
     static {
-        CONVERTER_MAP.put("VARCHAR(255)", Converters.STRING);
+        CONVERTER_MAP.put("VARCHAR", Converters.STRING);
+
         CONVERTER_MAP.put("TEXT", Converters.TEXT);
         CONVERTER_MAP.put("INT", Converters.INTEGER);
         CONVERTER_MAP.put("BIGINT", Converters.LONG);
@@ -21,14 +22,22 @@ public class KdbConverterFactory {
         CONVERTER_MAP.put("DATETIME", Converters.DATETIME);
         CONVERTER_MAP.put("DATETIME(6)", Converters.DATETIME6);
         CONVERTER_MAP.put("BLOB", Converters.BLOB);
+        CONVERTER_MAP.put("TIME(6)", Converters.TIME6);
 
 
     }
 
     @SuppressWarnings("unchecked")
     public static <T> KdbConverter<Object, T> getConverter(String mysqlType) {
+        if(mysqlType.contains("VARCHAR")) {
+            mysqlType = "VARCHAR";
+        }
+
         return (KdbConverter<Object, T>) CONVERTER_MAP.get(mysqlType.toUpperCase());
     }
+
+
+
 
 
 }

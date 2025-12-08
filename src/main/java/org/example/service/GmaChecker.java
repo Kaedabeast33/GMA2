@@ -1,5 +1,9 @@
 package org.example.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
@@ -9,13 +13,53 @@ import org.example.JsonBuilder.json.ma.tables.columns.ColumnDTO;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.IndexJson;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.example.bank.OutputClassBank.AppConfig.*;
+
 
 public class GmaChecker {
+
     String name;
     List<MAChecker> maCheckers;
+
+    public void runUpdate(String query) {
+        // Remove MySQL CLI-only syntax (DELIMITER)
+        query = query
+                .replace("DELIMITER $$", "")
+                .replace("DELIMITER ;", "")
+                .replace("$$", "")
+                .replace("\u001B[3m", "").replace("\u001B[0m", ""); // Remove ANSI codes (ITALIC
+
+
+        try (Connection connection = DriverManager.getConnection(
+                getJdbcUrl(), getJdbcUser(), getJdbcPassword())) {
+//            System.out.println(getJdbcPassword()+" "+getJdbcUser()+" "+getJdbcUrl());
+
+            Statement stmt = connection.createStatement();
+
+            // Split on semicolon to allow running multiple statements
+            query = query.trim().replaceAll(";$", "");  // Remove trailing semicolon if present
+            stmt.execute(query);
+            System.out.println("Update executed successfully");
+
+
+        } catch (SQLException e) {
+
+            System.out.println("\u001B[31mSQL Exception: " + e.getMessage() + "\u001B[0m");
+        }
+    }
+
+
+
 
     public String getName() {
         return name;
@@ -119,254 +163,315 @@ public class GmaChecker {
         System.out.println("\n\u001B[1;32m✅ All differences reviewed successfully.\u001B[0m\n");
     }
 
-    private void askContinueTab(Scanner scanner, ColumnJson[] columns, IndexJson[] indexes, UniqueKeyJson[] keys, String tableName) {
-        String insert = null;
 
-        String colGen = columnQueryCreator(columns).toString();
-        String idxGen = indexQueryCreator(indexes).toString();
-        String keyGen = uniqueCreator(keys).toString();
 
-        insert = String.format(ITALIC + """
-            CREATE TABLE %s (
-                %s
-                %s
-                %s
-            )
-            """ + RESET, tableName, colGen, idxGen, keyGen);
 
-        if (insert != null) System.out.println(insert);
+    private String indexQueryCreator(IndexJson[] indexes) {
+        if (indexes == null || indexes.length == 0) return "";
 
-        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
-        String input = scanner.nextLine().trim().toUpperCase();
-        while (!input.equals("Y") && !input.equals("N")) {
-            System.out.print("\t\tPlease enter Y or N: ");
-            input = scanner.nextLine().trim().toUpperCase();
+        List<String> q = new ArrayList<>();
+
+        for (IndexJson idx : indexes) {
+            if (idx.getIndexGroupName().contains("_fk") ||
+                    idx.getIndexGroupName().contains("_key") ||
+                    idx.getIndexGroupName().contains("PRIMARY")) {
+                continue;
+            }
+
+            q.add(String.format("    KEY %s (%s)",
+                    idx.getIndexGroupName(),
+                    idx.getColumns().stream()
+                            .map(ColumnDTO::getName)
+                            .collect(Collectors.joining(", "))
+            ));
         }
 
-        if (input.equals("Y")) {
-            System.out.println("\"inserting change\"");
-        } else {
-            System.out.println("\"continuing without update\"");
-        }
+        return String.join(",\n", q);
     }
-
-    private StringBuilder uniqueCreator(UniqueKeyJson[] keys) {
+    private String uniqueCreator(UniqueKeyJson[] keys) {
         StringBuilder query = new StringBuilder();
+        List<String> queries = new ArrayList<>();
 
         // Check if keys array is null or empty
         if (keys == null || keys.length == 0) {
-            return query;
+            return query.toString();
         }
 
         for (UniqueKeyJson uk : keys) {
             // Skip if the unique key name contains "PRIMARY" or if columns are null/less than 2
+
             if (uk == null || uk.getName() == null || uk.getColumns() == null || uk.getColumns().length < 2) {
                 continue;
             }
+            query = new StringBuilder();
 
-            query.append(String.format("    CONSTRAINT `%s` UNIQUE (%s),\n",
+            query.append(String.format("    CONSTRAINT %s UNIQUE (%s)\n",
                     uk.getName(),
                     Arrays.stream(uk.getColumns())
                             .map(ColumnDTO::getName)
                             .collect(Collectors.joining(", "))));
+
+            queries.add(query.toString());
         }
 
 
 
-        return query;
+        return String.join(",",queries);
     }
 
-    private StringBuilder indexQueryCreator(IndexJson[] indexes) {
-        StringBuilder query = new StringBuilder();
+    private String columnQueryCreator(ColumnJson[] columns) {
+        if (columns == null || columns.length == 0) return "";
 
-        for (IndexJson idx : indexes) {
-            if( idx.getIndexGroupName().contains("_fk") || idx.getIndexGroupName().contains("_key") || idx.getIndexGroupName().contains("PRIMARY")){
-                continue;
-            }
-            query.append(String.format("    KEY `%s` (%s),\n",
-                    idx.getIndexGroupName(),
-                    idx.getColumns().stream()
-                            .map(ColumnDTO::getName)
-                            .collect(Collectors.joining(", "))));
-        }
-
-        // Remove the trailing comma and newline
-
-
-        return query;
-    }
-
-    private StringBuilder columnQueryCreator(ColumnJson[] columns) {
-        StringBuilder query = new StringBuilder();
+        List<String> q = new ArrayList<>();
+        List<String> primaryKeys = new ArrayList<>();
 
         for (ColumnJson col : columns) {
-            query.append(String.format("    `%s` %s%s,\n",
+            if (col.isPrimaryKey()) {
+                primaryKeys.add(col.getName());
+            }
+            q.add(String.format("    %s %s",
                     col.getName(),
-                    col.getType(),
-                    col.getPrimaryKey() ? " PRIMARY KEY" : ""));
+                    col.getType()
+//                    col.getPrimaryKey() ? " PRIMARY KEY" : ""
+            ));
         }
+        String p = "PRIMARY KEY (" + String.join(", ", primaryKeys) + ")";
+        q.add(p);
 
-        // Remove the trailing comma and newline
-        if (query.length() > 0) {
-            query.setLength(query.length() - 2);
-        }
-
-        return query;
+        return String.join(",\n", q);
     }
 
+    // ────────────────────────────── COLOR CONSTANTS ──────────────────────────────
+    private static final String RED    = "\u001B[31m";
+    private static final String GREEN  = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String CYAN   = "\u001B[36m";
 
-    private void askContinueUniqueKey(Scanner scanner, String type, String tableName, String keyName, ColumnDTO[] columns) {
-        String replace = null;
-        String insert = null;
+
+    // ────────────────────────────── REUSABLE PROMPT ──────────────────────────────
+    private String askYesNo(Scanner scanner) {
+        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
+        String input = scanner.nextLine().trim().toUpperCase();
+        while (!input.equals("Y") && !input.equals("N")) {
+            System.out.print("\t\tPlease enter Y or N: ");
+            input = scanner.nextLine().trim().toUpperCase();
+        }
+        return input;
+    }
+
+    private void pauseForEnter(Scanner scanner) {
+        System.out.println(YELLOW + "Press Enter to continue to next difference..." + RESET);
+        scanner.nextLine();
+    }
+
+    // ────────────────────────────── 1. askContinueTab ──────────────────────────────
+    private void askContinueTab(Scanner scanner, ColumnJson[] columns, IndexJson[] indexes,
+                                UniqueKeyJson[] keys, String tableName) {
+        String colGen = columnQueryCreator(columns);
+        String idxGen = indexQueryCreator(indexes);
+        String keyGen = uniqueCreator(keys);
+
+        List<String> parts = new ArrayList<>();
+        if (!colGen.isEmpty()) parts.add(colGen);
+        if (!idxGen.isEmpty()) parts.add(idxGen);
+        if (!keyGen.isEmpty()) parts.add(keyGen);
+
+        if (parts.isEmpty()) {
+            System.out.println(YELLOW + "No changes to apply for this table." + RESET);
+            pauseForEnter(scanner);
+            return;
+        }
+
+        String createSQL = String.format("CREATE TABLE %s (\n%s\n);", tableName, String.join(",\n", parts));
+        System.out.println(CYAN + createSQL + RESET);
+
+        if (askYesNo(scanner).equals("Y")) {
+            System.out.println(GREEN + "\"Inserting table creation...\"" + RESET);
+            try {
+                runUpdate(createSQL);
+                System.out.println(GREEN + "Table created successfully!" + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + "Failed to create table (continuing): " + e.getMessage() + RESET);
+            }
+        } else {
+            System.out.println(YELLOW + "Skipped table creation." + RESET);
+        }
+        pauseForEnter(scanner);
+    }
+
+    // ────────────────────────────── 2. askContinueUniqueKey ──────────────────────────────
+    private void askContinueUniqueKey(Scanner scanner, String type, String tableName,
+                                      String keyName, ColumnDTO[] columns) {
+        String replace = null, insert = null;
 
         switch (type) {
             case "key IDE column", "key IDE" -> {
-                replace = String.format(ITALIC + """
-                        ALTER TABLE `%s` DROP CONSTRAINT IF EXISTS `%s`;
-                        """ + RESET, tableName, keyName);
-
-                insert = String.format(ITALIC + """
-                        ALTER TABLE `%s` ADD CONSTRAINT `%s` UNIQUE (%s);
-                        """ + RESET, tableName, keyName, Arrays.stream(columns).map(ColumnDTO::getName).collect(Collectors.joining(", ")));
-
-                System.out.println();
+                replace = String.format(ITALIC + "ALTER TABLE %s DROP CONSTRAINT IF EXISTS %s;" + RESET, tableName, keyName);
+                insert  = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);" + RESET,
+                        tableName, keyName, Arrays.stream(columns).map(ColumnDTO::getName).collect(Collectors.joining(", ")));
             }
             default -> {
-                System.out.println("\"No action for this type.\"");
+                System.out.println(YELLOW + "\"No action for this unique key type.\"" + RESET);
+                pauseForEnter(scanner);
                 return;
             }
         }
 
         if (replace != null) System.out.println(replace);
-        if (insert != null) System.out.println(insert);
+        if (insert != null)  System.out.println(insert);
 
-        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
-        String input = scanner.nextLine().trim().toUpperCase();
-        while (!input.equals("Y") && !input.equals("N")) {
-            System.out.print("\t\tPlease enter Y or N: ");
-            input = scanner.nextLine().trim().toUpperCase();
-        }
-
-        if (input.equals("Y")) {
-            System.out.println("\"inserting change\"");
+        if (askYesNo(scanner).equals("Y")) {
+            System.out.println(GREEN + "\"Applying unique key change...\"" + RESET);
+            try {
+                if (replace != null) runUpdate(replace);
+                if (insert != null)  runUpdate(insert);
+                System.out.println(GREEN + "Unique key updated successfully!" + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + "Unique key update failed (continuing): " + e.getMessage() + RESET);
+            }
         } else {
-            System.out.println("\"continuing without update\"");
+            System.out.println(YELLOW + "Skipped unique key change." + RESET);
         }
+        pauseForEnter(scanner);
     }
 
-    private void askContinueCol(Scanner scanner, String columnName, String type, String changeType, String tableName, ColumnJson col) {
-        String replace = null;
-        String insert = null;
-        ;
+    // ────────────────────────────── 3. askContinueCol ──────────────────────────────
+    private void askContinueCol(Scanner scanner, String columnName, String type, String changeType,
+                                String tableName, ColumnJson col) {
+        String replace = null, insert = null;
+        String defaultValue  = "";
+        if(col.getDefaultValue()!=null && !Objects.equals(col.getDefaultValue(), "")){
+            defaultValue =  " DEFAULT " + col.getDefaultValue() ;
+        }
+        String def = String.format("%s %s %s %s %s",
+                columnName,
+                col.getType(),
+                col.isNullable() ? "NULL" : "NOT NULL",
+                col.isUnique() ? " UNIQUE" : "",                           // note the leading space
+                defaultValue
+        );
+
         switch (type) {
-            case "type", "isNullable","defaultValue" -> {
-                String columnDef = String.format("`%s` %s %s %s %s", columnName, col.getType(), col.isNullable() ? "NULL" : "NOT NULL", col.isUnique() ? "UNIQUE" : "", !Objects.equals(col.getDefaultValue(), "") ? "DEFAULT " + col.getDefaultValue():"");
-                replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN %s;" + RESET, tableName,columnDef);
+            case "type", "isNullable", "defaultValue", "isUnique DB" -> {
 
+                replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN %s;" + RESET, tableName, def.trim());
             }
-            case "column DB" -> {
-                replace = String.format(ITALIC + "ALTER TABLE %s DROP COLUMN `%s`;" + RESET, tableName, columnName);
-
-            }
+            case "column DB" -> replace = String.format(ITALIC + "ALTER TABLE %s DROP COLUMN %s;" + RESET, tableName, columnName);
             case "column IDE" -> {
-                String columnDef = String.format("`%s` %s %s %s", columnName, col.getType(), col.isNullable() ? "NULL" : "NOT NULL", col.isUnique() ? "UNIQUE" : "");
-//                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
-                replace = String.format(ITALIC + "ALTER TABLE %s ADD COLUMN %s;" + RESET, tableName, columnDef);
 
+                replace = String.format(ITALIC + "ALTER TABLE %s ADD COLUMN %s;" + RESET, tableName, def.trim());
             }
-            case "isUnique" -> {
-
-//                replace = String.format(ITALIC + "ALTER TABLE %s drop column `%s`;" + RESET, tableName, columnName);
-                insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT `%s` UNIQUE (%s);" + RESET, tableName,col.getName()+"_key", col.getName());
-
-            }
-
+            case "isUnique IDE" -> insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);" + RESET,
+                    tableName, columnName + "_unique", columnName);
             default -> {
-                System.out.println("\"No action for this type.\"");
+                System.out.println(YELLOW + "\"No action for this column type.\"" + RESET);
+                pauseForEnter(scanner);
                 return;
             }
         }
+
         if (replace != null) System.out.println("\n" + replace);
-        if (insert != null) System.out.println("\n" + insert);
+        if (insert != null)  System.out.println("\n" + insert);
 
-        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
-        String input = scanner.nextLine().trim().toUpperCase();
-        while (!input.equals("Y") && !input.equals("N")) {
-            System.out.print("\t\tPlease enter Y or N: ");
-            input = scanner.nextLine().trim().toUpperCase();
+        if (askYesNo(scanner).equals("Y")) {
+            System.out.println(GREEN + "\"Applying column change...\"" + RESET);
+            try {
+                if (replace != null) runUpdate(replace);
+                if (insert != null)  runUpdate(insert);
+                System.out.println(GREEN + "Column updated successfully!" + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + "Column update failed (continuing): " + e.getMessage() + RESET);
+            }
+        } else {
+            System.out.println(YELLOW + "Skipped column change." + RESET);
         }
-
-        if (input.equals("Y")) System.out.println("\"inserting change\"");
-        else System.out.println("\"continuing without update\"");
+        pauseForEnter(scanner);
     }
 
-    private void askContinueTrigger(Scanner scanner, String type, String triggerName, String triggerContent, String triggerType, String tableName, String schemaName) {
-        String insert = null;
-        String replace = null;
+    // ────────────────────────────── 4. askContinueTrigger ──────────────────────────────
+    private void askContinueTrigger(Scanner scanner, String type, String triggerName,
+                                    String triggerContent, String triggerType, String tableName, String schemaName) {
+        String replace = null, insert = null;
 
         switch (type) {
-            case "trigger IDE" -> insert = String.format(ITALIC + """
-                    DELIMITER $$\n\t\tCREATE TRIGGER `%s` %s ON `%s` FOR EACH ROW %s$$\nDELIMITER ;
-                    """ + RESET, triggerName, triggerType, tableName, triggerContent);
-            case "trigger DB" ->
-                    replace = String.format(ITALIC + "DROP TRIGGER %s.`%s`;" + RESET, schemaName, triggerName);
-            case "trigger content" -> {
-                replace = String.format(ITALIC + "DROP TRIGGER %s.`%s`;" + RESET, schemaName, triggerName);
-                insert=String.format(ITALIC + """
-                    DELIMITER $$\n\t\tCREATE TRIGGER `%s` %s ON `%s` FOR EACH ROW %s$$\nDELIMITER ;
-                    """ + RESET, triggerName, triggerType, tableName, triggerContent);
+            case "trigger IDE" -> insert = ITALIC + """
+                DELIMITER $$
+                CREATE TRIGGER %s.%s %s ON %s FOR EACH ROW
+                %s$$
+                DELIMITER ;""".formatted(schemaName, triggerName, triggerType, tableName, triggerContent) + RESET;
 
+            case "trigger DB" -> replace = String.format(ITALIC + "DROP TRIGGER IF EXISTS %s.%s;" + RESET, schemaName, triggerName);
+
+            case "trigger content", "trigger type" -> {
+                replace = String.format(ITALIC + "DROP TRIGGER IF EXISTS %s.%s;" + RESET, schemaName, triggerName);
+                insert  = ITALIC + """
+                    DELIMITER $$
+                    CREATE TRIGGER %s.%s %s ON %s FOR EACH ROW
+                    %s$$
+                    DELIMITER ;""".formatted(schemaName, triggerName, triggerType, tableName, triggerContent) + RESET;
             }
             default -> {
-                System.out.println("\"No action for this type.\"");
+                System.out.println(YELLOW + "\"No action for this trigger type.\"" + RESET);
+                pauseForEnter(scanner);
                 return;
             }
         }
 
-        System.out.println("\n\n");
-        if (insert != null) System.out.println(insert);
+        System.out.println();
         if (replace != null) System.out.println(replace);
+        if (insert != null)  System.out.println(insert);
 
-        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
-        String input = scanner.nextLine().trim().toUpperCase();
-        while (!input.equals("Y") && !input.equals("N")) {
-            System.out.print("\t\tPlease enter Y or N: ");
-            input = scanner.nextLine().trim().toUpperCase();
+        if (askYesNo(scanner).equals("Y")) {
+            System.out.println(GREEN + "\"Applying trigger change...\"" + RESET);
+            try {
+                if (replace != null) runUpdate(replace);
+                if (insert != null)  runUpdate(insert);
+                System.out.println(GREEN + "Trigger updated successfully!" + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + "Trigger update failed (continuing): " + e.getMessage() + RESET);
+            }
+        } else {
+            System.out.println(YELLOW + "Skipped trigger change." + RESET);
         }
-
-        if (input.equals("Y")) System.out.println("\"inserting change\"");
-        else System.out.println("\"continuing without update\"");
+        pauseForEnter(scanner);
     }
 
-    private void askContinueIndex(Scanner scanner, String type, String tableName, String idx_name, ColumnDTO[] columns) {
-        String replace = null;
-        String insert = null;
+    // ────────────────────────────── 5. askContinueIndex ──────────────────────────────
+    private void askContinueIndex(Scanner scanner, String type, String tableName,
+                                  String idx_name, ColumnDTO[] columns) {
+        String replace = null, insert = null;
 
         switch (type) {
             case "index IDE columns", "index IDE" -> {
-                replace = String.format(ITALIC + "ALTER TABLE %s DROP INDEX `%s`;" + RESET, tableName, idx_name);
-                insert = String.format(ITALIC + "CREATE INDEX `%s` ON %s (%s);" + RESET, idx_name, tableName, Arrays.stream(columns).map(ColumnDTO::getName).collect(Collectors.joining(", ")));
+                replace = String.format(ITALIC + "DROP INDEX %s ON %s;" + RESET, idx_name, tableName);
+                insert  = String.format(ITALIC + "CREATE INDEX %s ON %s (%s);" + RESET,
+                        idx_name, tableName,
+                        Arrays.stream(columns).map(ColumnDTO::getName).collect(Collectors.joining(", ")));
             }
-            case "index DB" ->
-                    replace = String.format(ITALIC + "ALTER TABLE %s DROP INDEX `%s`;" + RESET, tableName, idx_name);
+            case "index DB" -> replace = String.format(ITALIC + "DROP INDEX %s ON %s;" + RESET, idx_name, tableName);
             default -> {
-                System.out.println("\"No action for this type.\"");
+                System.out.println(YELLOW + "\"No action for this index type.\"" + RESET);
+                pauseForEnter(scanner);
                 return;
             }
         }
 
         if (replace != null) System.out.println(replace);
-        if (insert != null) System.out.println(insert);
+        if (insert != null)  System.out.println(insert);
 
-        System.out.print(ITALIC + "Do you want to update the DB? (Y/N): " + RESET);
-        String input = scanner.nextLine().trim().toUpperCase();
-        while (!input.equals("Y") && !input.equals("N")) {
-            System.out.print("\t\tPlease enter Y or N: ");
-            input = scanner.nextLine().trim().toUpperCase();
+        if (askYesNo(scanner).equals("Y")) {
+            System.out.println(GREEN + "\"Applying index change...\"" + RESET);
+            try {
+                if (replace != null) runUpdate(replace);
+                if (insert != null)  runUpdate(insert);
+                System.out.println(GREEN + "Index updated successfully!" + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + "Index update failed (continuing): " + e.getMessage() + RESET);
+            }
+        } else {
+            System.out.println(YELLOW + "Skipped index change." + RESET);
         }
-
-        if (input.equals("Y")) System.out.println("\"inserting change\"");
-        else System.out.println("\"Not updated\"");
+        pauseForEnter(scanner);
     }
 
 //    private void askContinue(Scanner scanner,String type,String tableName,ColumnDTO[] columns) {
@@ -838,7 +943,13 @@ public class GmaChecker {
                 }
                 if (col.isUnique() != colDb.isUnique()) {
                     ColCheck colCheck = new ColCheck(col.getName(), col.getType());
-                    colCheck.setType("isUnique");
+                    String id = "";
+                    if(col.isUnique()){
+                        id = "IDE";
+                    }else{
+                        id = "DB";
+                    }
+                    colCheck.setType("isUnique "+id);
                     colCheck.setDifference("IDE: " + col.isUnique() + ", DB: " + colDb.isUnique());
                     colCheck.setColumn(col);
                     colCheckList.add(colCheck);
@@ -851,8 +962,8 @@ public class GmaChecker {
                     colCheck.setColumn(col);
                 }
                 if (!Objects.equals(
-                        Optional.ofNullable(col.getDefaultValue()).orElse("").trim(),
-                        Optional.ofNullable(colDb.getDefaultValue()).orElse("").trim())) {
+                        Optional.of(col.getDefaultValue().replace("(","").replace(")","").toUpperCase()).orElse("").trim(),
+                        Optional.of(colDb.getDefaultValue().replace("(","").replace(")","").toUpperCase()).orElse("").trim())) {
                     ColCheck colCheck = new ColCheck(col.getName(), col.getType());
                     colCheck.setType("defaultValue");
                     colCheck.setDifference("IDE: " + col.getDefaultValue() + ", DB: " + colDb.getDefaultValue());
@@ -872,6 +983,7 @@ public class GmaChecker {
             ColCheck colCheck = new ColCheck(c.getName(), c.getType());
             colCheck.setType("column DB");
             colCheck.setDifference("IDE: null, DB: " + c.getName());
+            colCheck.setColumn(c);
             remainingColCheckList.add(colCheck);
             columnCheckMap.put(c.getName(), remainingColCheckList);
         }
@@ -1365,4 +1477,8 @@ public class GmaChecker {
                 ", maCheckers=" + maCheckers +
                 '}';
     }
+
+
+
+
 }

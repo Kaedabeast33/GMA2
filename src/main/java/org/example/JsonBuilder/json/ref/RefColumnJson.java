@@ -10,6 +10,10 @@ public class RefColumnJson {
         this.referenceTable = new RefTableJson("n/a", "n/a", null);
     }
 
+    public RefColumnJson(){
+
+    }
+
     public RefTableJson getReferenceTable() {
         return referenceTable;
     }

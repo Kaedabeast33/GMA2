@@ -8,6 +8,7 @@ import org.example.bank.Annotations.KdbColumn;
 import org.example.bank.Annotations.KdbIndex;
 import org.example.bank.Annotations.KdbPrimaryKey;
 import org.example.bank.Annotations.KdbReference;
+import org.example.bank.OutputClassBank.KdbColumnPersona;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -17,7 +18,7 @@ import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
 import static org.example.bank.commonValues.ValueTypes.TYPE_MAP;
 
 
-public class ColumnJson {
+public class ColumnJson implements KdbColumnPersona {
     String name;
     String description;
     String[] tags;

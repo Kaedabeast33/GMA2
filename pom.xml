@@ -15,14 +15,28 @@
     </properties>
     <build>
         <plugins>
+            <!-- Compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>22</source>
                     <target>22</target>
-<!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
                 </configuration>
+            </plugin>
+
+            <!-- Spring Boot plugin to build fat jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -76,5 +90,6 @@
 
 
     </dependencies>
+
 
 </project>

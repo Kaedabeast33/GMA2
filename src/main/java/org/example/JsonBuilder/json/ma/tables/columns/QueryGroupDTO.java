@@ -7,13 +7,13 @@ import java.util.UUID;
 public class QueryGroupDTO {
     String name;
     String grId = "gr" + UUID.randomUUID();
-    BaseQueryJson queries;
+    BaseQueryJson[] queries;
 
-    public BaseQueryJson getQueries() {
+    public BaseQueryJson[] getQueries() {
         return queries;
     }
 
-    public void setQueries(BaseQueryJson queries) {
+    public void setQueries(BaseQueryJson[] queries) {
         this.queries = queries;
     }
 

@@ -4,11 +4,12 @@ import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.KdbConverter.DefaultKdbConverter;
 import org.example.bank.KdbConverter.KdbConverter;
 import org.example.bank.KdbConverter.KdbConverterFactory;
+import org.example.bank.OutputClassBank.KdbColumnPersona;
 
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ColumnTemplate {
+public abstract class ColumnTemplate implements KdbColumnPersona {
 
     protected final String name;
     protected final String colId;
@@ -36,14 +37,16 @@ public abstract class ColumnTemplate {
     private EntityValue<?> entityValue;
 
     private Class<?> kdbConverter;
-    private String queryMatchString;
+    private List<String> queryMatchString;
+    private boolean isPrimaryKey;
 
     protected ColumnTemplate(String name, String colId,
                              String description, String[] tag, boolean isNullable, boolean isEditable,
-                             boolean unique, boolean isRequired, String type, Object defaultValue,
+                             boolean unique, boolean isRequired, String type, String defaultValue,
                              String[] columnGroups, boolean uniqueIdentifier,
                              String[] uniqueIdentifierGroupNames, boolean isIndex
             , String[] indexGroups, List<ColumnTemplate> referenceColumns, Class<?> fieldType, Class<?> kdbConverter
+            , boolean isPrimaryKey
     ) {
 
         this.name = name;
@@ -64,8 +67,17 @@ public abstract class ColumnTemplate {
         this.referenceColumns = referenceColumns;
         this.fieldType = fieldType;
         this.kdbConverter = kdbConverter;
+        this.isPrimaryKey = isPrimaryKey;
 
 
+    }
+
+    public boolean isPrimaryKey() {
+        return isPrimaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        isPrimaryKey = primaryKey;
     }
 
     public Class<?> getFieldType() {
@@ -111,12 +123,13 @@ public abstract class ColumnTemplate {
     }
 
 
-    public String getQueryMatchString() {
+    public List<String> getQueryMatchStrings() {
         return queryMatchString;
     }
 
-    public void setQueryMatchString(String queryMatchString) {
+    public ColumnTemplate setQueryMatchStrings(List<String> queryMatchString) {
         this.queryMatchString = queryMatchString;
+        return this;
     }
 
     public String getName() {
@@ -194,4 +207,3 @@ public abstract class ColumnTemplate {
 
     }
 }
-

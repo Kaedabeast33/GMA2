@@ -14,6 +14,10 @@ public class ReferenceColumnJson {
 
     }
 
+    public ReferenceColumnJson(){
+
+    }
+
 
     public RefColumnJson[] getReferenceColumns() {
         return referenceColumns;

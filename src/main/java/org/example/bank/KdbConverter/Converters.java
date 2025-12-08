@@ -5,6 +5,7 @@ import org.example.bank.JsonBuilderRef.EntityValue;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class Converters {
@@ -97,4 +98,11 @@ public class Converters {
         return new EntityValue<>(input.toString().getBytes(), byte[].class);
     };
 
+    public static final KdbConverter<Object, LocalTime>  TIME6 = input ->{
+        if(input == null) return new EntityValue<>(null, LocalTime.class);
+        if(input instanceof LocalTime) return new EntityValue<>((LocalTime) input, LocalTime.class);
+        return new EntityValue<>(LocalTime.parse(input.toString(),
+                DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS")), LocalTime.class);
+    };
 }
+

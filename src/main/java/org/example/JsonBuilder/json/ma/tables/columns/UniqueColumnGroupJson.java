@@ -11,6 +11,10 @@ public class UniqueColumnGroupJson {
 
     ColumnDTO[] columns;
 
+    public UniqueColumnGroupJson(){
+
+    }
+
 
     public UniqueColumnGroupJson(Map.Entry<String, List<ColumnJson>> entry) {
         this.name = entry.getKey();

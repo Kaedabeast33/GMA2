@@ -74,7 +74,7 @@ public class TableClassCreator {
         }
 
 
-        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}),List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson"}),List.of(new String[]{"bank.OutputClassBank.KdbColumnWrapper.safeGetValue"}), path, false);
+        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}),List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson","bank.OutputClassBank.QueryResult"}),List.of(new String[]{"bank.OutputClassBank.KdbColumnWrapper.safeGetValue"}), path, false);
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{}), path, true);
         generateTabImports(path);
         generateContextImport(path);
@@ -93,10 +93,15 @@ public class TableClassCreator {
 
     static public void generateContextImport(Path path) {
         StringBuilder packagePath = new StringBuilder(javaDir);
+        StringBuilder packagePath2 = new StringBuilder(javaDir);
 
 
-        packagePath.append(resourceDir).append("KDBContext;\n\n");
+        packagePath.append(resourceDir).append("KDBContext;\n");
+        packagePath2.append(resourceDir).append("KdbColumnPersona;\n\n");
+
+
         String importStatement = String.format("import %s", packagePath.toString());
+        importStatement += String.format("import %s", packagePath2.toString());
         try {
             Files.writeString(path, importStatement, StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -125,13 +130,18 @@ public class TableClassCreator {
     private void generateQueryMethods(Path path) {
         String getQueryByCol = """
                     @Override
-                    public String getQueryByCols(List<ColumnTemplate> byColumns) {
+                    public QueryResult getQueryByCols(List<ColumnTemplate> byColumns) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(),this.getMaName(),this.getName(),byColumns);
                     }
                     
                     @Override
-                    public String getQueryByCols(List<ColumnTemplate>byColumns,List<ColumnTemplate> getColumns){
+                    public QueryResult getQueryByCols(List<ColumnTemplate>byColumns,List<KdbColumnPersona> getColumns) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(),this.getMaName(),this.getName(),byColumns,getColumns);
+                    }
+                    
+                    @Override
+                    public QueryResult getQuery(List<KdbColumnPersona> getColumns) throws SQLException {
+                        return context.getQuery(this.getGmaName(),this.getMaName(),this.getName(),getColumns);
                     }
                 """;
         try {
@@ -145,28 +155,33 @@ public class TableClassCreator {
 
         String getUpload = """
                         @Override
-                        public String getUploadDelete(List<ColumnTemplate> toDeleteBy,Boolean includeNullValues ) {
+                        public String getUploadDelete(List<KdbColumnPersona> toDeleteBy,Boolean includeNullValues ) {
                             return context.getUploadDelete(this.getGmaName(),this.getMaName(),this.getName(),toDeleteBy,includeNullValues);
                         }
                         
                         @Override
-                        public String getUploadUpdate(List<ColumnTemplate> toUpdateBy,Boolean includeNullValues,List<ColumnJson> updateColumns ) {
+                        public String getUploadUpdate(List<KdbColumnPersona> toUpdateBy,Boolean includeNullValues,List<KdbColumnPersona> updateColumns ) {
                             return context.getUploadUpdate(this.getGmaName(),this.getMaName(),this.getName(),toUpdateBy,includeNullValues,updateColumns);
                         }
                         
                         @Override
-                        public String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues,List<ColumnJson> insertColumns,Boolean includePrimaryKey ) {
+                        public String getUploadInsert(List<KdbColumnPersona> toInsertBy,Boolean includeNullValues,List<KdbColumnPersona> insertColumns,Boolean includePrimaryKey ) {
                             return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName(),toInsertBy,includeNullValues,insertColumns,includePrimaryKey);
                         }
                         
                         @Override
-                        public String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues) {
+                        public String getUploadInsert(List<KdbColumnPersona> toInsertBy,Boolean includeNullValues) {
                             return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName(),toInsertBy,includeNullValues);
                         }
                         
                         @Override
                         public String getUploadInsert() {
                             return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName());
+                        }
+                        
+                        @Override
+                        public String getUploadInsert(Boolean includePrimaryKey ) {
+                            return context.getUploadInsert(this.getGmaName(),this.getMaName(),this.getName(),includePrimaryKey);
                         }
                 
                 """;
@@ -285,7 +300,7 @@ public class TableClassCreator {
             String className = "COL_" + col.getName();
 
             // Add to getEntitiesList
-            getEntitiesList.append(String.format("          safeGetValue(get%s().getEntityValue()),\n", className));
+            getEntitiesList.append(String.format("          safeGetValue(get%s()),\n", className));
 
             // Add to variableStrings for String.format placeholders
             variableStrings.append("'%s',");
@@ -353,6 +368,7 @@ public class TableClassCreator {
     static void generateTabImports(Path path) throws IOException {
         String imports = """
                 import java.util.List;
+                import java.sql.SQLException;
                 
                 """;
         // Ensure directory exists

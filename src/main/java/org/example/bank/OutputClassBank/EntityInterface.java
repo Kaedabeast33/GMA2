@@ -1,12 +1,11 @@
 package org.example.bank.OutputClassBank;
 
 import org.example.ClassOutputCreator.templates.ColumnTemplate;
-import org.example.ClassOutputCreator.templates.UpsertTemplate;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.function.Supplier;
 
 public interface EntityInterface {
 
@@ -40,12 +39,18 @@ public interface EntityInterface {
     //    List<String> getIndexes();
 //    String getIdName();
     String getDescription();
-    String getUploadDelete(List<ColumnTemplate> toDeleteBy, Boolean includeNullValues );
-    String getUploadUpdate(List<ColumnTemplate> toUpdateBy,Boolean includeNullValues,List<ColumnJson> updateColumns );
-    String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues,List<ColumnJson> insertColumns,Boolean includePrimaryKey );
-    String getUploadInsert(List<ColumnTemplate> toInsertBy,Boolean includeNullValues);
+    String getUploadDelete(List<KdbColumnPersona> toDeleteBy, Boolean includeNullValues );
+    String getUploadUpdate(List<KdbColumnPersona> toUpdateBy,Boolean includeNullValues,List<KdbColumnPersona> updateColumns );
+    String getUploadInsert(List<KdbColumnPersona> toInsertBy,Boolean includeNullValues,List<KdbColumnPersona> insertColumns,Boolean includePrimaryKey );
+    String getUploadInsert(List<KdbColumnPersona> toInsertBy,Boolean includeNullValues);
     String getUploadInsert();
+    String getUploadInsert(Boolean includePrimaryKey );
+
+    QueryResult getQueryByCols(List<ColumnTemplate> byColumns) throws SQLException;
+    QueryResult getQueryByCols(List<ColumnTemplate> byColumns,List<KdbColumnPersona> getColumns) throws SQLException;
+    QueryResult getQuery(List<KdbColumnPersona> getColumns) throws SQLException;
 
 //    String getDependencies();
 
 }
+

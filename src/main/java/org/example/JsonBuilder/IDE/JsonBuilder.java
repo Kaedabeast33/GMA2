@@ -93,7 +93,7 @@ public class JsonBuilder {
                 .filter(ma -> {
                     try {
                         // Your MA folder (coming from ma.getJavaFolderPath()) must match package path
-                        // Example: org.example.org.example.inputs/schemas/employeealignment
+                        // Example: com/chipr/GMA/com.chipr.GMA.inputs/schemas/employeealignment
                         String pathPattern = "classpath*:" + ma.getJavaFolderPath() + "/**/*.class";
 
                         Resource[] resources = resolver.getResources(pathPattern);

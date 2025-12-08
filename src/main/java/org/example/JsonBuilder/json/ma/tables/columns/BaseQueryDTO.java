@@ -11,6 +11,9 @@ public class BaseQueryDTO {
     protected String queryType;
     protected String contentString; // could be query or procedure
 
+    public BaseQueryDTO() {
+    }
+
     public BaseQueryDTO(BaseQueryJson baseQueryJson) {
         this.name = baseQueryJson.getName();
         this.description = baseQueryJson.getDescription();

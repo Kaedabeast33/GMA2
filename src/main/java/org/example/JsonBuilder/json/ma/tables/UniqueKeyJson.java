@@ -21,6 +21,9 @@ public class UniqueKeyJson {
         this.id = "key" + UUID.randomUUID();
     }
 
+    public UniqueKeyJson() {
+    }
+
     public UniqueKeyJson(Map.Entry<String, List<ColumnJson>> entry) {
         this.name = entry.getKey();
         this.columns = new ColumnDTO[entry.getValue().size()];

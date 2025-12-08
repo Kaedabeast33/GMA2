@@ -7,6 +7,7 @@ import org.example.JsonBuilder.json.ma.tables.TableJson;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class MAJson {
     String name;
     String description;
@@ -24,6 +25,9 @@ public class MAJson {
     PipelineJson[] pipelines;
     ProcedureJson[] procedures;
 
+    public MAJson(){
+
+    }
     public MAJson(MAConfigTemplate db) {
         this.name = db.getName();
         this.description = db.getDescription();

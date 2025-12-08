@@ -88,5 +88,5 @@ public abstract class TableTemplate implements EntityInterface {
         return maName;
     }
 
-    public abstract String getUploadDelete(List<ColumnTemplate> toDeleteBy, Boolean includeNullValues);
+
 }

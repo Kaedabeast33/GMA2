@@ -16,6 +16,9 @@ public class CustomContraintJson {
     RefSetJson[] triggerSets;
     RefColumnJson[] columns;
 
+    public CustomContraintJson() {
+    }
+
     public CustomContraintJson(KdbCustomContraint kdbCustomContraint, Method method) throws InvocationTargetException, IllegalAccessException {
         this.name = kdbCustomContraint.name();
         this.description = kdbCustomContraint.description();

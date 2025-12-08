@@ -19,6 +19,10 @@ public class GroupDTO {
 
     }
 
+    public GroupDTO(){
+
+    }
+
     public String getName() {
         return name;
     }

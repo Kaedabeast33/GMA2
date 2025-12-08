@@ -4,12 +4,12 @@ import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class GMAJson {
+
+
 
     String name;
     String description;
@@ -42,8 +42,10 @@ public class GMAJson {
 //        this.groups = gma.getGroups();
     }
 
+    public GMAJson() {
+    }
 
-//    public GMAJson(KdbGmaDb gma){
+    //    public GMAJson(KdbGmaDb gma){
 //
 //    }
 
@@ -112,4 +114,39 @@ public class GMAJson {
     public void setQueryGroups(QueryGroupJson[] queryGroups) {
         this.queryGroups = queryGroups;
     }
+
+    public static <T> T createBlankInstance(Class<T> clazz) {
+        try {
+            T instance = clazz.getDeclaredConstructor().newInstance();
+
+            for (java.lang.reflect.Field field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+
+                if (fieldType == String.class) {
+                    field.set(instance, "");
+                } else if (fieldType == String[].class) {
+                    field.set(instance, new String[]{});
+                } else if (fieldType == Integer.class || fieldType == int.class) {
+                    field.set(instance, 0);
+                } else if (fieldType == Boolean.class || fieldType == boolean.class) {
+                    field.set(instance, false);
+                } else if (fieldType == Double.class || fieldType == double.class) {
+                    field.set(instance, 0.0);
+                } else if (fieldType == List.class) {
+                    field.set(instance, new ArrayList<>());
+                } else if (fieldType == Map.class) {
+                    field.set(instance, new HashMap<>());
+                } else if (fieldType.isArray()) {
+                    field.set(instance, java.lang.reflect.Array.newInstance(
+                            fieldType.getComponentType(), 0));
+                }
+            }
+
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create blank instance", e);
+        }
+    }
+
 }

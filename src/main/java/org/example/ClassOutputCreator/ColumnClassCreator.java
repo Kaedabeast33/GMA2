@@ -74,7 +74,8 @@ public class ColumnClassCreator {
                             %s,  // indexGroups
                             %s,  // referenceColumns
                             %s,  // fieldType
-                            %s.class  // kdbConverter
+                            %s.class,  // kdbConverter
+                            %s  // isPrimaryKey
                 
                 
                         );
@@ -101,7 +102,8 @@ public class ColumnClassCreator {
                 toArrayLiteral(safeNameList(columnJson.getIndexGroups(), obj -> obj.getName()).toArray(new String[0])),
                 formatReferenceColumns(columnJson.getReferenceColumn()),
                 FIELD_TYPE_MAP.get(columnJson.getFieldType()),
-                columnJson.getKdbConverter()
+                columnJson.getKdbConverter(),
+                columnJson.isPrimaryKey()
 
         );
 

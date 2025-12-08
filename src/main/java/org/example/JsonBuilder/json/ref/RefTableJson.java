@@ -11,6 +11,10 @@ public class RefTableJson {
         this.referenceMa = referenceMa;
     }
 
+    public RefTableJson(){
+
+    }
+
     public String getTableName() {
         return tableName;
     }

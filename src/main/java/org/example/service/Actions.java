@@ -2,15 +2,24 @@ package org.example.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.example.ClassOutputCreator.templates.ColumnTemplate;
 import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.ClassOutputCreator.templates.MAConfigTemplate;
+import org.example.ClassOutputCreator.templates.TableTemplate;
 import org.example.JsonBuilder.json.GMAJson;
+import org.example.JsonBuilder.json.QueryGroupJson;
+import org.example.JsonBuilder.json.ma.PipelineJson;
+import org.example.JsonBuilder.json.ma.tables.*;
+import org.example.JsonBuilder.json.ma.tables.columns.*;
+import org.example.JsonBuilder.json.ma.tables.dependencies.DependencyJson;
+import org.example.JsonBuilder.json.ref.RefColumnJson;
+import org.example.JsonBuilder.json.ref.RefTableJson;
+import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
 import org.example.bank.OutputClassBank.KDBContext;
 import org.example.JsonBuilder.DB.DbToJsonExtractor;
 import org.example.JsonBuilder.IDE.JsonBuilder;
 import org.example.JsonBuilder.json.ma.MAJson;
-import org.example.JsonBuilder.json.ma.tables.ProcedureJson;
-import org.example.JsonBuilder.json.ma.tables.TableJson;
+import org.example.bank.OutputClassBank.KdbColumnPersona;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,17 +33,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static org.example.ClassOutputCreator.ClassCreator.getWorkingDirectory;
 import static org.example.ClassOutputCreator.ClassCreator.jsonToObjects;
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
+import static org.example.JsonBuilder.json.GMAJson.createBlankInstance;
+import static org.example.bank.OutputClassBank.AppConfig.*;
 
 @Component
 public class Actions {
@@ -112,11 +119,7 @@ public class Actions {
     // ------------------Build GMa Context for Dorm ------------------------
     public void buildGmaContext() throws InvocationTargetException, IllegalAccessException {
         for(KdbGma kdbGma : kdbContext.getGmaConfigList()){
-            for(MAConfigTemplate ma :kdbGma.getMa()){
-                System.out.println(ma.getJavaFolderPath());
-            }
             GMAJson gma = jsonBuilder.buildJsonOfGma(kdbGma);
-
             kdbContext.addGMA(gma);
         }
 
@@ -136,6 +139,36 @@ public class Actions {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
             System.out.println("Classes built");
+            String sql = "INSERT INTO gma_configs (name, config_json) " +
+                    "VALUES (?, ?) " +
+                    "ON DUPLICATE KEY UPDATE config_json = VALUES(config_json)";
+
+            String sql2 = """
+                    INSERT INTO gma_structure (db_name,level_name,key_name)
+                    VALUES(?,?,?)
+                    ON DUPLICATE KEY UPDATE level_name,key_name  = VALUES(level_name,key_name)
+                   
+                    """;
+
+            try (Connection connection = DriverManager.getConnection(getJdbcUrl(), getJdbcUser(), getJdbcPassword());
+
+
+                 PreparedStatement ps = connection.prepareStatement(sql);
+                 PreparedStatement ps2 = connection.prepareStatement(sql2)
+                 )
+
+            {
+
+
+                ps.setString(1, gma.getName());
+                ps.setString(2, gson.toJson(gma));
+                ps.executeUpdate();
+            }
+
+            catch (Exception e){
+                System.out.println("Failed to save GMA config to database.");
+//                throw new RuntimeException(e);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -231,6 +264,114 @@ public class Actions {
 
 
     }
+
+    public void writeDbGmaStructure() throws IOException {
+        QueryGroupDTO queryGroupDTO = new QueryGroupDTO();
+        queryGroupDTO.setQueries(List.of(new BaseQueryJson()).toArray(new BaseQueryJson[0]));
+
+
+
+
+
+//        Gson gson = new Gson();
+//
+//        System.out.println("\n=== Using Reflection ===");
+
+
+
+        ColumnJson columns = createBlankInstance(ColumnJson.class);
+        GroupDTO groupDTO = createBlankInstance(GroupDTO.class);
+        ColumnJson groupColumn = createBlankInstance(ColumnJson.class);
+        groupDTO.setColumnGroupColumns(new ColumnJson[]{groupColumn});
+
+        columns.setColumnGroups(new GroupDTO[]{groupDTO});
+        columns.setUniqueIdentifierGroups(new GroupDTO[]{groupDTO});
+        columns.setIndexGroups(new GroupDTO[]{groupDTO});
+        ReferenceColumnJson referenceColumnJson = createBlankInstance(ReferenceColumnJson.class);
+        RefColumnJson refColumnJson = createBlankInstance(RefColumnJson.class);
+        refColumnJson.setReferenceTable(createBlankInstance(RefTableJson.class));
+        referenceColumnJson.setReferenceColumns(new RefColumnJson[]{refColumnJson});
+
+
+
+
+
+
+
+
+
+
+        TableJson reflectionTable = createBlankInstance(TableJson.class);
+        DependencyJson dependencies = createBlankInstance(DependencyJson.class);
+        ColumnGroupJson columnGroups = createBlankInstance(ColumnGroupJson.class);
+        ColumnDTO columnDTO = createBlankInstance(ColumnDTO.class);
+        columnGroups.setgroupColumns(List.of(columnDTO).toArray(new ColumnDTO[0]));
+        UniqueColumnGroupJson uniqueColumnGroups = createBlankInstance(UniqueColumnGroupJson.class);
+        uniqueColumnGroups.setColumns(List.of(columnDTO).toArray(new ColumnDTO[0]));
+        IndexJson indexes = createBlankInstance(IndexJson.class);
+        indexes.setColumns(List.of(columnDTO));
+        QueryJson tableQueries = createBlankInstance(QueryJson.class);
+        tableQueries.setGroups(List.of(queryGroupDTO));
+        ProcedureJson tableProcedures = createBlankInstance(ProcedureJson.class);
+        tableProcedures.setGroups(List.of(queryGroupDTO));
+        TriggerJson triggers = createBlankInstance(TriggerJson.class);
+        CustomContraintJson customConstraints = createBlankInstance(CustomContraintJson.class);
+        RefColumnJson refColumnJsonTable= createBlankInstance(RefColumnJson.class);
+        customConstraints.setColumns(List.of(refColumnJsonTable).toArray(new RefColumnJson[0]));
+        UniqueKeyJson uniqueKeys = createBlankInstance(UniqueKeyJson.class);
+        uniqueKeys.setColumns(new ColumnDTO[]{columnDTO});
+
+
+
+
+
+        reflectionTable.setUniqueColumnGroups(List.of(uniqueColumnGroups).toArray(new UniqueColumnGroupJson[0]));
+        reflectionTable.setColumnGroups(List.of(columnGroups).toArray(new ColumnGroupJson[0]));
+        reflectionTable.setIndexes(List.of(indexes).toArray(new IndexJson[0]));
+        reflectionTable.setTableQueries(List.of(tableQueries).toArray(new QueryJson[0]));
+        reflectionTable.setTableProcedures(List.of(tableProcedures).toArray(new ProcedureJson[0]));
+        reflectionTable.setTriggers(List.of(triggers).toArray(new TriggerJson[0]));
+        reflectionTable.setCustomConstraints(List.of(customConstraints).toArray(new CustomContraintJson[0]));
+        reflectionTable.setUniqueKeys(List.of(uniqueKeys).toArray(new UniqueKeyJson[0]));
+        reflectionTable.setColumns(List.of(columns).toArray(new ColumnJson[0]));
+        reflectionTable.setDependencies(List.of(dependencies).toArray(new DependencyJson[0]));
+
+
+
+
+
+        MAJson reflectionMa = createBlankInstance(MAJson.class);
+        QueryJson queryJson  =  createBlankInstance(QueryJson.class);
+        ProcedureJson procedureJson  =  createBlankInstance(ProcedureJson.class);
+        PipelineJson pipelineJson = createBlankInstance(PipelineJson.class);
+
+        pipelineJson.setQueries(List.of(queryJson).toArray(new QueryJson[0]));
+        reflectionMa.setProcedures(List.of(procedureJson).toArray(new ProcedureJson[0]));
+        reflectionMa.setPipelines(List.of(pipelineJson).toArray(new PipelineJson[]{}));
+
+
+        GMAJson reflectionGma = createBlankInstance(GMAJson.class);
+        QueryGroupJson queryGroupJson = createBlankInstance(QueryGroupJson.class);
+        BaseQueryDTO baseQueryDTO = createBlankInstance(BaseQueryDTO.class);
+        queryGroupJson.setQueries(List.of(baseQueryDTO));
+        reflectionGma.setQueryGroups(List.of(queryGroupJson).toArray(new QueryGroupJson[0]));
+
+
+
+
+
+
+        reflectionMa.setTables(List.of(reflectionTable).toArray(new TableJson[0]));
+        reflectionGma.setMa(List.of(reflectionMa));
+
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+        Path path = Paths.get(workingDir,"gmaStructure.json");
+        Files.deleteIfExists(path);
+        Files.createFile(path);
+        Files.writeString(path,gson.toJson(reflectionGma));
+    }
+
 
 
 }

@@ -11,7 +11,12 @@ public class QueryGroupJson {
     String grId = "qgr" + UUID.randomUUID();
     String[] tags;
 
+    public QueryGroupJson() {
+    }
+
     List<BaseQueryDTO> queries = new java.util.ArrayList<>();
+
+
 
 
     public QueryGroupJson(String name) {
