@@ -1,6 +1,7 @@
 package org.example.JsonBuilder.IDE;
 
 
+import jakarta.persistence.Id;
 import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.ClassOutputCreator.templates.MAConfigTemplate;
 import org.example.JsonBuilder.json.GMAJson;
@@ -16,6 +17,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.example.bank.commonValues.Identifier;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -93,7 +95,7 @@ public class JsonBuilder {
                 .filter(ma -> {
                     try {
                         // Your MA folder (coming from ma.getJavaFolderPath()) must match package path
-                        // Example: com/chipr/GMA/com.chipr.GMA.inputs/schemas/employeealignment
+                        // Example: com/chipr/GMA/org.example.inputs/schemas/employeealignment
                         String pathPattern = "classpath*:" + ma.getJavaFolderPath() + "/**/*.class";
 
                         Resource[] resources = resolver.getResources(pathPattern);
@@ -116,8 +118,9 @@ public class JsonBuilder {
         // Now build MA JSON definitions
         List<MAJson> maJsons = new ArrayList<>();
         for (MAConfigTemplate db : gma.getMa()) {
-            MAJson maJson = new MAJson(db);
-            maJson.setTables(buildJsonOfTables(db.getJavaFolderPath()));
+            Identifier identifer = new Identifier(gma.getName(),db.getName(),null);
+            MAJson maJson = new MAJson(identifer,db);
+            maJson.setTables(buildJsonOfTables(db.getJavaFolderPath(),identifer));
 
             List<ProcedureJson> allProcedures = new ArrayList<>();
             for (TableJson table : maJson.getTables()) {
@@ -321,12 +324,13 @@ public class JsonBuilder {
     }
 
 
-    public TableJson[] buildJsonOfTables(String packageName) throws InvocationTargetException, IllegalAccessException {
+    public TableJson[] buildJsonOfTables(String packageName,Identifier id) throws InvocationTargetException, IllegalAccessException {
         List<TableComb> tableCombs = getAllClassesInPackage(packageName);
         List<TableJson> list = new ArrayList<>();
 
         for (TableComb table : tableCombs) {
-            TableJson tableJson = new TableJson(table);
+
+            TableJson tableJson = new TableJson(id,table);
 //            System.out.println(tableJson.toString());
             list.add(tableJson);
         }

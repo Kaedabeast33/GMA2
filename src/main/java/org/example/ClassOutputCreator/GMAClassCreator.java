@@ -3,9 +3,7 @@ package org.example.ClassOutputCreator;
 
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
-import org.example.bank.OutputClassBank.AppConfig;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.example.bank.commonValues.AppConfig;
 
 import java.io.File;
 import java.io.IOException;

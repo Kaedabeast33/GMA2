@@ -14,16 +14,16 @@ public class EntityValue<T> {
 
     public <T> T getValue() {
         if (value == null) {
-            if (type == String.class) return (T) "";
-            if (type == Integer.class) return (T) Integer.valueOf(0);
-            if (type == Long.class) return (T) Long.valueOf(0);
-            if (type == Float.class) return (T) Float.valueOf(0);
-            if (type == Double.class) return (T) Double.valueOf(0);
-            if (type == Boolean.class) return (T) Boolean.FALSE;
-            if (type == LocalDate.class) return (T) LocalDate.now();
-            if (type == LocalDateTime.class) return (T) LocalDateTime.now();
+//            if (type == String.class) return (T) "";
+//            if (type == Integer.class) return (T) Integer.valueOf(0);
+//            if (type == Long.class) return (T) Long.valueOf(0);
+//            if (type == Float.class) return (T) Float.valueOf(0);
+//            if (type == Double.class) return (T) Double.valueOf(0);
+//            if (type == Boolean.class) return (T) Integer.valueOf(0);
+//            if (type == LocalDate.class) return (T) LocalDate.now();
+//            if (type == LocalDateTime.class) return (T) LocalDateTime.now();
             // fallback: return null for unknown types
-            return null;
+            return (T)"null";
         }
         return (T) value;
     }

@@ -7,6 +7,7 @@ import org.example.JsonBuilder.json.ma.tables.dependencies.DependencyJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.bank.Annotations.*;
 import org.example.bank.JsonBuilderRef.IndexMapObject;
+import org.example.bank.commonValues.Identifier;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -18,6 +19,8 @@ public class TableJson {
     String tableId = "tab" + UUID.randomUUID();
     String tableType;
     String tableUploadType;
+
+    Identifier identifier;
 
     DependencyJson[] dependencies;
 
@@ -37,12 +40,16 @@ public class TableJson {
     private transient Map<String, List<BaseQueryJson>> queriesMap = new HashMap<>();
 
 
-    public TableJson(TableComb table) throws InvocationTargetException, IllegalAccessException {
+    public TableJson(Identifier identifier,TableComb table) throws InvocationTargetException, IllegalAccessException {
         KdbTable tableData = table.getKdbTable();
         this.name = tableData.name();
+
         this.description = tableData.description();
         this.tags = tableData.tags();
         this.tableType = tableData.type();
+
+        this.identifier = new Identifier(identifier);
+        this.identifier.setTableName(this.name);
         this.tableUploadType = tableData.uploadType();
 
         List<FieldsComb> fields = table.getFieldsComb();
@@ -81,7 +88,7 @@ public class TableJson {
 
             if (kdbColumn != null) {
 //                set each annotated Fields into the Columns Json[]
-                columns[i] = new ColumnJson(kdbColumn, kdbPrimaryKey, kdbIndex, kdbReference, fieldType);
+                columns[i] = new ColumnJson(new Identifier(this.identifier),kdbColumn, kdbPrimaryKey, kdbIndex, kdbReference, fieldType);
 
                 // adding Unique Key field
                 try {
@@ -175,8 +182,8 @@ public class TableJson {
                         List<IndexMapObject> value;
                         String name;
 
-                        if (kdbIndex == null || kdbIndex.indexGroups().length == 0 || (kdbReference != null && kdbIndex == null) || kdbKey != null) {
-                            name = kdbPrimaryKey != null ? "PRIMARY_" + kdbColumn.name() : kdbReference != null ? kdbColumn.name() + "_fk" : kdbKey != null ? kdbColumn.name() + "_key" : kdbColumn.name() + "_idx";
+                        if (kdbPrimaryKey!=null ) {
+                            name = "PRIMARY_" + kdbColumn.name();
                             if ((value = indexMap.get(name)) == null) {
                                 value = new ArrayList<>();
                                 IndexMapObject map = new IndexMapObject(0, columns[i]);
@@ -188,26 +195,79 @@ public class TableJson {
                                 value.add(map);
                             }
 
-                        } else {
-                            if (kdbIndex.order().length != kdbIndex.indexGroups().length) {
-                                throw new IllegalArgumentException("Mismatch: order length ("
-                                        + kdbIndex.order().length + ") != indexGroups length ("
-                                        + kdbIndex.indexGroups().length + ")\n on " + kdbColumn.name());
-                            }
-                            for (int j = 0; j < kdbIndex.indexGroups().length; j++) {
+                        }
+                         if (kdbIndex!=null) {
+
+                            if(kdbIndex.indexGroups().length>0){
+                                if (kdbIndex.order().length != kdbIndex.indexGroups().length) {
+                                    throw new IllegalArgumentException("Mismatch: order length ("
+                                            + kdbIndex.order().length + ") != indexGroups length ("
+                                            + kdbIndex.indexGroups().length + ")\n on " + kdbColumn.name());
+                                }
+                                for (int j = 0; j < kdbIndex.indexGroups().length; j++) {
 //                                add to list of Index Strings in the index map by using the the indexgroup and order to determine the order of the list of indexes in the map
-                                String indexGroup = kdbIndex.indexGroups()[j];
-                                if ((value = indexMap.get(indexGroup)) == null) {
+                                    String indexGroup = kdbIndex.indexGroups()[j];
+                                    if ((value = indexMap.get(indexGroup)) == null) {
+                                        value = new ArrayList<>();
+                                        IndexMapObject map = new IndexMapObject(kdbIndex.order()[j], columns[i]);
+                                        value.add(map);
+                                        indexMap.put(indexGroup, value);
+                                    } else {
+                                        IndexMapObject map = new IndexMapObject(kdbIndex.order()[j], columns[i]);
+                                        value.add(map);
+                                    }
+//                                }
+//                                for(String groupName : kdbColumn.columnGroupNames()) {
+//                                    name = groupName + "_" + kdbColumn.name() + "_idx";
+//                                    if ((value = indexMap.get(name)) == null) {
+//                                        value = new ArrayList<>();
+//                                        IndexMapObject map = new IndexMapObject(0, columns[i]);
+//
+//                                        value.add(map);
+//                                        indexMap.put(name, value);
+//                                    } else {
+//                                        IndexMapObject map = new IndexMapObject(0, columns[i]);
+//                                        value.add(map);
+//                                    }
+                                }
+                            }else {
+                                name = kdbColumn.name() + "_idx";
+                                if ((value = indexMap.get(name)) == null) {
                                     value = new ArrayList<>();
-                                    IndexMapObject map = new IndexMapObject(kdbIndex.order()[j], columns[i]);
+                                    IndexMapObject map = new IndexMapObject(0, columns[i]);
+
                                     value.add(map);
-                                    indexMap.put(indexGroup, value);
+                                    indexMap.put(name, value);
                                 } else {
-                                    IndexMapObject map = new IndexMapObject(kdbIndex.order()[j], columns[i]);
+                                    IndexMapObject map = new IndexMapObject(0, columns[i]);
                                     value.add(map);
                                 }
                             }
+
+
+
                         }
+                        if (kdbReference != null){
+                            name = kdbColumn.name() + "_fk";
+                            if ((value = indexMap.get(name)) == null) {
+                                value = new ArrayList<>();
+                                IndexMapObject map = new IndexMapObject(0, columns[i]);
+
+                                value.add(map);
+                                indexMap.put(name, value);
+                            } else {
+                                IndexMapObject map = new IndexMapObject(0, columns[i]);
+                                value.add(map);
+                            }
+                        }
+
+
+//                        || ( && kdbIndex == null) || kdbKey != null  ||  (kdbIndex == null || kdbIndex.indexGroups().length == 0  || kdbIndex.indexGroups().length > 0
+
+
+
+
+//                        }
 
 
                     }

@@ -2,9 +2,6 @@ package org.example.ClassOutputCreator.templates;
 
 import org.example.bank.OutputClassBank.EntityInterface;
 
-import java.util.List;
-import java.util.function.Supplier;
-
 
 public abstract class TableTemplate implements EntityInterface {
     protected final String name;

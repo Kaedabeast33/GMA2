@@ -1,9 +1,5 @@
 package org.example.service;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
@@ -13,9 +9,6 @@ import org.example.JsonBuilder.json.ma.tables.columns.ColumnDTO;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.IndexJson;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -23,7 +16,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.example.bank.OutputClassBank.AppConfig.*;
+import static org.example.bank.commonValues.AppConfig.*;
 
 
 public class GmaChecker {
@@ -226,12 +219,28 @@ public class GmaChecker {
         List<String> primaryKeys = new ArrayList<>();
 
         for (ColumnJson col : columns) {
+            String defaultValue = "";
+            String nullable = "";
+
+            nullable = col.isNullable()? "NULL": "NOT NULL";
+            defaultValue = (col.getDefaultValue() != null && !col.getDefaultValue().trim().isEmpty())
+                    ? "DEFAULT " + col.getDefaultValue()
+                    : "";
+
             if (col.isPrimaryKey()) {
                 primaryKeys.add(col.getName());
+                nullable ="";
+                if(Objects.equals(col.getDefaultValue(), "AUTO_INCREMENT")){
+                    defaultValue = col.getDefaultValue();
+                }
             }
-            q.add(String.format("    %s %s",
+
+            q.add(String.format("    %s %s %s %s",
                     col.getName(),
-                    col.getType()
+                    col.getType(),
+                    nullable,
+                    defaultValue
+
 //                    col.getPrimaryKey() ? " PRIMARY KEY" : ""
             ));
         }
@@ -341,7 +350,11 @@ public class GmaChecker {
         String replace = null, insert = null;
         String defaultValue  = "";
         if(col.getDefaultValue()!=null && !Objects.equals(col.getDefaultValue(), "")){
-            defaultValue =  " DEFAULT " + col.getDefaultValue() ;
+            if(col.isPrimaryKey()&&col.getDefaultValue().equalsIgnoreCase("AUTO_INCREMENT")){
+                defaultValue = " AUTO_INCREMENT ,\n\tadd unique key uq_primary_key ("+col.getName()+")";
+            }else {
+                defaultValue = " DEFAULT " + col.getDefaultValue();
+            }
         }
         String def = String.format("%s %s %s %s %s",
                 columnName,

@@ -2,10 +2,7 @@ package org.example.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.example.ClassOutputCreator.templates.ColumnTemplate;
 import org.example.ClassOutputCreator.templates.KdbGma;
-import org.example.ClassOutputCreator.templates.MAConfigTemplate;
-import org.example.ClassOutputCreator.templates.TableTemplate;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.QueryGroupJson;
 import org.example.JsonBuilder.json.ma.PipelineJson;
@@ -19,7 +16,7 @@ import org.example.bank.OutputClassBank.KDBContext;
 import org.example.JsonBuilder.DB.DbToJsonExtractor;
 import org.example.JsonBuilder.IDE.JsonBuilder;
 import org.example.JsonBuilder.json.ma.MAJson;
-import org.example.bank.OutputClassBank.KdbColumnPersona;
+import org.example.bank.db.ItemJson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -41,7 +38,7 @@ import static org.example.ClassOutputCreator.ClassCreator.getWorkingDirectory;
 import static org.example.ClassOutputCreator.ClassCreator.jsonToObjects;
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
 import static org.example.JsonBuilder.json.GMAJson.createBlankInstance;
-import static org.example.bank.OutputClassBank.AppConfig.*;
+import static org.example.bank.commonValues.AppConfig.*;
 
 @Component
 public class Actions {
@@ -51,6 +48,8 @@ public class Actions {
 
     @Autowired
     JsonBuilder jsonBuilder;
+
+
 
     Gson gson = createGson();
     //        System.out.println(gson.toJson(gma));
@@ -116,7 +115,7 @@ public class Actions {
         }
     }
 
-    // ------------------Build GMa Context for Dorm ------------------------
+    // ------------------Build GMa Context for vyta ------------------------
     public void buildGmaContext() throws InvocationTargetException, IllegalAccessException {
         for(KdbGma kdbGma : kdbContext.getGmaConfigList()){
             GMAJson gma = jsonBuilder.buildJsonOfGma(kdbGma);
@@ -124,13 +123,14 @@ public class Actions {
         }
 
 
-        System.out.println("GMA Context built");
+        System.out.println("GMA Context built "+kdbGma.getName());
+
     }
 //        //----------Build Classes ---------
 
     public void buildClasses() {
         try {
-            GMAJson gma = kdbContext.getGmaByName("dorm");
+            GMAJson gma = kdbContext.getGmaByName(getGmaName());
             jsonToObjects(gma);
             Files.writeString(
                     Paths.get(workingDir, "db.json"),
@@ -139,14 +139,45 @@ public class Actions {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
             System.out.println("Classes built");
-            String sql = "INSERT INTO gma_configs (name, config_json) " +
+            String createValhalla = " create schema if not exists valhalla";
+
+            String createGmaConfigs = """
+                    CREATE TABLE if not exists valhalla.gma_configs (
+                      `id` bigint NOT NULL AUTO_INCREMENT,
+                      `name` varchar(255) NOT NULL,
+                      `config_json` json NOT NULL,
+                      `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                      PRIMARY KEY (`id`),
+                      UNIQUE KEY `uk_gma_name` (`name`)
+                    ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                    """;
+            String createGmaItems= """
+                    
+                    create table if not exists  valhalla.gma_items (
+                    
+                        db_ma varchar(150) not null,
+                        db_table varchar(150) not null,
+                        db_column varchar(150) not null,
+                        column_json json not null,
+                        Primary key (db_ma,db_table,db_column)
+                    )
+                    """;
+            String sql = "INSERT INTO valhalla.gma_configs (name, config_json) " +
                     "VALUES (?, ?) " +
                     "ON DUPLICATE KEY UPDATE config_json = VALUES(config_json)";
 
             String sql2 = """
-                    INSERT INTO gma_structure (db_name,level_name,key_name)
+                    INSERT INTO valhalla.gma_structure (db_name,level_name,key_name)
                     VALUES(?,?,?)
                     ON DUPLICATE KEY UPDATE level_name,key_name  = VALUES(level_name,key_name)
+                   
+                    """;
+
+            String columnFilter = """
+                    
+                    INSERT INTO valhalla.gma_items (db_ma,db_table,db_column,column_json)
+                    VALUES(?)
+                    ON DUPLICATE KEY UPDATE column_json  = VALUES(column_json)
                    
                     """;
 
@@ -154,19 +185,62 @@ public class Actions {
 
 
                  PreparedStatement ps = connection.prepareStatement(sql);
-                 PreparedStatement ps2 = connection.prepareStatement(sql2)
+                 PreparedStatement ps2 = connection.prepareStatement(sql2);
+
                  )
 
             {
+                connection.createStatement().execute(createValhalla);
+                connection.createStatement().execute(createGmaConfigs);
+                connection.createStatement().execute(createGmaItems);
 
 
-                ps.setString(1, gma.getName());
-                ps.setString(2, gson.toJson(gma));
-                ps.executeUpdate();
+                try{
+                    ps.setString(1, gma.getName());
+                    ps.setString(2, gson.toJson(gma));
+                    ps.executeUpdate();
+                }catch (Exception e){
+                    System.out.println("\u001B[92m gma_configs failed \u001B[0m "+e);
+                }
+
+                try {
+                    List<String> columnFilterValues = new ArrayList<>();
+
+                    for (MAJson ma : gma.getMa()) {
+                        String maName = ma.getName();
+                        for (TableJson table : ma.getTables()) {
+                            String tableName = table.getName();
+                            for (ColumnJson column : table.getColumns()) {
+                                String columnName = column.getName();
+                                ItemJson itemJson = new ItemJson(columnName, column.getTags(), column.getDescription(), tableName, table.getTags(), table.getDescription(), maName, ma.getTags(), ma.getDescription());
+                                String value = String.format("('%s','%s','%s','%s')", maName, tableName, columnName, gson.toJson(itemJson));
+                                columnFilterValues.add(value);
+
+                            }
+                        }
+                    }
+
+                    String q = String.format("""
+                    INSERT INTO valhalla.gma_items (db_ma,db_table,db_column,column_json)
+                    VALUES 
+                        %s
+                    ON DUPLICATE KEY UPDATE column_json  = VALUES(column_json)
+                    """, String.join(",\n", columnFilterValues));
+
+
+                    String delete ="delete from valhalla.gma_items";
+                    connection.createStatement().execute(delete);
+                    connection.createStatement().execute(q);
+
+                }catch (Exception e){
+                    System.out.println("\u001B[93m gma_items failed \u001B[0m "+e);
+                }
+
             }
 
             catch (Exception e){
-                System.out.println("Failed to save GMA config to database.");
+                System.out.println("\u001B[35mFailed to save GMA config to database.\u001B[0m");
+
 //                throw new RuntimeException(e);
             }
         } catch (Exception e) {
@@ -183,7 +257,7 @@ public class Actions {
     public void getDbJson() throws SQLException, InvocationTargetException, IllegalAccessException, IOException {
 
         System.out.println("Connecting to the database.");
-        GMAJson gma = kdbContext.getGmaByName("dorm");
+        GMAJson gma = kdbContext.getGmaByName(getGmaName());
         for (MAJson ma : gma.getMa()) {
 
             Connection connection;
@@ -244,17 +318,20 @@ public class Actions {
                 StandardOpenOption.TRUNCATE_EXISTING
         );
 
-        gma.setName("dorm_db");
+        gma.setName(getGmaName()+"_db");
         kdbContext.addGMA(gma);
+
     }
 
     public void analyzeJson() throws FileNotFoundException {
         BufferedReader reader = new BufferedReader(new FileReader("db.json"));
         BufferedReader readerF = new BufferedReader(new FileReader("db_from_db.json"));
-        GMAJson dormGma = gson.fromJson(reader, GMAJson.class);
-        GMAJson dormDbGma = gson.fromJson(readerF, GMAJson.class);
+        GMAJson vytaGma = gson.fromJson(reader, GMAJson.class);
+        GMAJson vytaDbGma = gson.fromJson(readerF, GMAJson.class);
 
-        GmaChecker checker = new GmaChecker(dormGma, dormDbGma);
+
+
+        GmaChecker checker = new GmaChecker(vytaGma, vytaDbGma);
         Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson1.toJson(checker));
         checker.reviewDifferencesWithPrompt();

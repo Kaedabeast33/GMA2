@@ -13,13 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.example.bank.OutputClassBank.AppConfig.*;
+import static org.example.bank.commonValues.AppConfig.*;
 import static org.example.bank.OutputClassBank.QueryResult.getQueryResultObj;
 import static org.example.bank.commonValues.ColumnConverter.toPersonaJson;
 
@@ -197,11 +196,10 @@ public enum KDBContext {
         if (ma != null) {
             TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
             if (table != null) {
-                List<ColumnJson> matchingColumns = Arrays.stream(table.getColumns())
+                return Arrays.stream(table.getColumns())
                         .filter(col -> Arrays.stream(col.getColumnGroups())
                                 .anyMatch(group -> Objects.equals(group.getName(), groupName)))
                         .toList();
-                return matchingColumns;
 
             } else {
                 System.out.println("Table " + tableName + " not found in MA " + maName);
@@ -372,6 +370,8 @@ public enum KDBContext {
                 sb = new StringBuilder(init);
             }
         }
+
+        System.out.println("saved insert");
 
         // Ensure the insertFunction runs in the same transaction
         for(String upsertQuery : upsertStrings) {

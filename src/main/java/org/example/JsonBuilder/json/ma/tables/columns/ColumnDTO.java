@@ -5,6 +5,7 @@ public class ColumnDTO {
     String description;
     String[] tags;
     String columnId;
+    String tableName;
 
     boolean isNullable;
     boolean isEditable;
@@ -43,6 +44,11 @@ public class ColumnDTO {
         this.fieldType = column.getFieldType();
 
 
+
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public String getFieldType() {

@@ -7,6 +7,11 @@ public class TableTypes {
     public static final String JOIN = "JOIN";
     public static final String QUEUE = "QUEUE";
     public static final String MASTER = "MASTER";
+    public static final String JSON = "JSON";
+    public static final String MtM = "ManyToMany";
+    public static final String OtM = "OneToMany";
+    public static final String OtO = "OneToOne";
+    public static final String MtO = "ManyToOne";
 
 
 }

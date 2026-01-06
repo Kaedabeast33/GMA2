@@ -1,4 +1,4 @@
-package org.example.bank.OutputClassBank;
+package org.example.bank.commonValues;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +21,10 @@ public class AppConfig {
     public static String getJavaDir() {
         System.out.println("Java Dir: " + properties.getProperty("app.javaDir", ""));
         return properties.getProperty("app.javaDir", ""); // default value
+    }
+
+    public static String getGmaName(){
+        return "dorm";
     }
 
 

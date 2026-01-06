@@ -52,6 +52,9 @@ public class ColumnClassCreator {
         pkgDir.add("columns");
         generatePackageDeclaration(pkgDir, childDirs, new ArrayList<>(List.of(new String[]{"ColumnTemplate"})), path, false);
 
+
+//        if(columnJson.getType())
+
         String classFormat = """
                 public class %s extends ColumnTemplate {
                 

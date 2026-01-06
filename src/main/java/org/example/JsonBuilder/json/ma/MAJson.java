@@ -3,12 +3,14 @@ package org.example.JsonBuilder.json.ma;
 import org.example.ClassOutputCreator.templates.MAConfigTemplate;
 import org.example.JsonBuilder.json.ma.tables.ProcedureJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
+import org.example.bank.commonValues.Identifier;
+import org.example.bank.db.contextObj.match.JsonInterface;
 
 import java.util.Map;
 import java.util.UUID;
 
 
-public class MAJson {
+public class MAJson implements JsonInterface {
     String name;
     String description;
     String jdbcUrl;
@@ -19,6 +21,8 @@ public class MAJson {
     String javaFolderPath;
     String transactionManagerBeanName;
     String uploadType;
+    Identifier identifier;
+
 
     Map<String, String> maSettings;
     TableJson[] tables;
@@ -28,7 +32,7 @@ public class MAJson {
     public MAJson(){
 
     }
-    public MAJson(MAConfigTemplate db) {
+    public MAJson(Identifier identifier,MAConfigTemplate db) {
         this.name = db.getName();
         this.description = db.getDescription();
         this.tags = db.getTags();
@@ -38,8 +42,25 @@ public class MAJson {
         this.user = db.getUsername();
         this.pass = db.getPassword();
         this.transactionManagerBeanName = db.getTransactionManagerBeanName();
+        this.identifier = identifier;
 //        this.uploadType = db.get();
 
+    }
+
+    public String getUploadType() {
+        return uploadType;
+    }
+
+    public void setUploadType(String uploadType) {
+        this.uploadType = uploadType;
+    }
+
+    public Identifier getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
     }
 
     public String getTransactionManagerBeanName() {

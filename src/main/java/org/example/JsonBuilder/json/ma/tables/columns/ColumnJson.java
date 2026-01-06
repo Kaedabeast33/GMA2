@@ -9,6 +9,7 @@ import org.example.bank.Annotations.KdbIndex;
 import org.example.bank.Annotations.KdbPrimaryKey;
 import org.example.bank.Annotations.KdbReference;
 import org.example.bank.OutputClassBank.KdbColumnPersona;
+import org.example.bank.commonValues.Identifier;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -23,6 +24,8 @@ public class ColumnJson implements KdbColumnPersona {
     String description;
     String[] tags;
     String columnId = "col" + UUID.randomUUID();
+
+    Identifier identifier;
 
     boolean isNullable;
     boolean isEditable;
@@ -41,13 +44,17 @@ public class ColumnJson implements KdbColumnPersona {
     String kdbConverter;
 
 
-    public ColumnJson(KdbColumn kdbColumn, KdbPrimaryKey kdbPrimaryKey, KdbIndex kdbIndex, KdbReference kdbReference, Class<?> fieldType
+    public ColumnJson(Identifier identifier, KdbColumn kdbColumn, KdbPrimaryKey kdbPrimaryKey, KdbIndex kdbIndex, KdbReference kdbReference, Class<?> fieldType
     ) {
 //        set Values to annotation values
         Gson gson = createGson();
+
         this.name = kdbColumn.name();
+        this.identifier = new Identifier(identifier);
+        this.identifier.setColumnName(this.name);
         this.description = kdbColumn.description();
         this.tags = kdbColumn.tags();
+
         this.isNullable = kdbPrimaryKey != null ? false : kdbColumn.isNullable();
         this.isEditable = kdbColumn.isEditable();
 
@@ -109,6 +116,7 @@ public class ColumnJson implements KdbColumnPersona {
         this.isRequired = column.isRequired();
         this.type = column.getType();
         this.fieldType = column.getFieldType();
+
 
 
     }
@@ -270,6 +278,8 @@ public class ColumnJson implements KdbColumnPersona {
     public void setIndexGroups(GroupDTO[] indexGroups) {
         this.indexGroups = indexGroups;
     }
+
+
 
     @Override
     public String toString() {

@@ -11,6 +11,7 @@ public class KdbDataBaseProperties {
     private String transactionBeanName;
 
 
+
     public String getDriverClassName() {
         return driverClassName;
     }

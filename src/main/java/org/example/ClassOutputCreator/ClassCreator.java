@@ -2,7 +2,7 @@ package org.example.ClassOutputCreator;
 
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
-import org.example.bank.OutputClassBank.AppConfig;
+import org.example.bank.commonValues.AppConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static org.example.bank.commonValues.AppConfig.getGmaName;
+
 public class ClassCreator {
     static String workingDir = Paths.get("").toAbsolutePath().toString();
+
 
 
     public static void jsonToObjects(GMAJson gma) throws IOException {
@@ -34,12 +37,16 @@ public class ClassCreator {
 
 
         String outputDir = outputDirBuilder.toString();
-        Path dir = Path.of(outputDir, "dorm");
+
+
+        Path dir = Path.of(outputDir, getGmaName());
         if (Files.exists(dir)) {
+
             Files.walk(dir)
                     .sorted(Comparator.reverseOrder()) // delete children first
                     .forEach(p -> {
                         try {
+
                             Files.delete(p);
                         } catch (IOException e) {
                             throw new RuntimeException("Failed to delete " + p, e);
@@ -56,7 +63,7 @@ public class ClassCreator {
 
     public static String getWorkingDirectory() {
         String workingDir = System.getProperty("user.dir");
-//        System.out.println("Working Directory = " + workingDir);
+//
         return workingDir;
 
     }

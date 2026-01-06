@@ -8,26 +8,34 @@ public class KdbColumnWrapper {
 
 
     public static String safeGetValue(ColumnTemplate col) {
-        System.out.println(col.getEntityValue().getValue().toString());
-        System.out.println("safeGetValue called with col: " + col.getName());
+    String returnValue = "";
+
         if(col == null){
+            System.out.println("safeGetValue called with null column");
             return "null";
         }
+        System.out.println("safeGetValue called with col: " + col.getName());
         if(col.isPrimaryKey() && col.getEntityValue().getValue() =="null"){
-            return "DEFAULT";
+            returnValue= "DEFAULT";
         }
 
-        if ( col.getEntityValue().getType() == null || col.getEntityValue().getValue() == "null") {
+        else if ( col.getEntityValue().getType() == null || col.getEntityValue().getValue() == "null") {
             System.out.println("here1");
             if (col.getDefaultValue() ==null || col.getDefaultValue()=="") {
                 System.out.println("here2");
-                return "null";
+                returnValue= "null";
             }else{
                 System.out.println("here3");
-                return "DEFAULT";
+                returnValue= "DEFAULT";
             }
         }
-        return col.getEntityValue().getValue().toString().replace("'","''");
+        else{
+
+        returnValue = col.getEntityValue().getValue()!=null? col.getEntityValue().getValue().toString().replace("'","''"):"null";
+
+        }
+        System.out.println("safeGetValue returning: " + returnValue);
+        return returnValue;
     }
 
 
