@@ -1,7 +1,12 @@
 package org.example.bank.db.contextObj.match;
 
+import org.example.bank.db.contextObj.Rules;
+
+import java.util.Map;
+
 public interface ContextInterface {
-    public String getName();
-    public String[] getTags();
-    public String[] getDescription();
+    String getName();
+    String[] getTags();
+    String[] getDescription();
+    Rules getRules();
 }

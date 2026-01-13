@@ -169,6 +169,13 @@ public class ColumnJson implements KdbColumnPersona {
         isPrimaryKey = primaryKey;
     }
 
+    public Identifier getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
+    }
 
     public void setTags(String[] tags) {
         this.tags = tags;
@@ -284,7 +291,9 @@ public class ColumnJson implements KdbColumnPersona {
     @Override
     public String toString() {
         return "ColumnJson{" +
-                "name='" + name + '\'' +
+                "name='" + name + "' ->" +
+                "ma_name='" + identifier.getMaName() + "' ->" +
+                "table_name='" + identifier.getTableName() + "' ->" +
 //                ", description='" + description + '\'' +
 //                ", tags=" + Arrays.toString(tags) +
 //                ", columnId='" + columnId + '\'' +
@@ -339,4 +348,20 @@ public class ColumnJson implements KdbColumnPersona {
     public boolean getPrimaryKey() {
         return isPrimaryKey;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ColumnJson that)) return false;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(identifier.getMaName(), that.identifier.getMaName()) &&
+                Objects.equals(identifier.getTableName(), that.identifier.getTableName());
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, identifier.getMaName(), identifier.getTableName());
+    }
+
+
+
 }

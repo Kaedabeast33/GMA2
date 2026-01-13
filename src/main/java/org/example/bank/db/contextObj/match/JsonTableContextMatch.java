@@ -1,15 +1,15 @@
 package org.example.bank.db.contextObj.match;
 
-import org.example.JsonBuilder.json.ma.MAJson;
+import org.example.JsonBuilder.json.ma.tables.TableJson;
 import org.example.bank.db.contextObj.ContextMa;
 
-public class JsonContextMatch {
+public class JsonTableContextMatch {
     ContextInterface context;
-    JsonInterface json;
+    TableJson json;
 
 
 
-    public JsonContextMatch(ContextInterface context, JsonInterface json) {
+    public JsonTableContextMatch(ContextInterface context, TableJson json) {
         this.context = context;
         this.json = json;
     }
@@ -22,11 +22,11 @@ public class JsonContextMatch {
         this.context = context;
     }
 
-    public JsonInterface getJson() {
+    public TableJson getJson() {
         return json;
     }
 
-    public void setJson(JsonInterface json) {
+    public void setJson(TableJson json) {
         this.json = json;
     }
 

@@ -7,6 +7,7 @@ import org.example.bank.commonValues.Identifier;
 import org.example.bank.db.contextObj.match.JsonInterface;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -168,5 +169,23 @@ public class MAJson implements JsonInterface {
 
     public void setProcedures(ProcedureJson[] procedures) {
         this.procedures = procedures;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MAJson)) return false;
+        MAJson maJson = (MAJson) o;
+        return Objects.equals(name, maJson.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier.getMaName());
+    }
+
+    @Override
+    public String toString() {
+        return "MAJson{name=" + name + '}';
     }
 }

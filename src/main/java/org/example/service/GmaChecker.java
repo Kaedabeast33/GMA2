@@ -351,6 +351,8 @@ public class GmaChecker {
         String defaultValue  = "";
         if(col.getDefaultValue()!=null && !Objects.equals(col.getDefaultValue(), "")){
             if(col.isPrimaryKey()&&col.getDefaultValue().equalsIgnoreCase("AUTO_INCREMENT")){
+                replace = String.format("Alter table %s DROP index uq_primary_key",tableName);
+
                 defaultValue = " AUTO_INCREMENT ,\n\tadd unique key uq_primary_key ("+col.getName()+")";
             }else {
                 defaultValue = " DEFAULT " + col.getDefaultValue();
@@ -365,9 +367,9 @@ public class GmaChecker {
         );
 
         switch (type) {
-            case "type", "isNullable", "defaultValue", "isUnique DB" -> {
+            case "type", "isNullable", "isUnique DB","defaultValue" -> {
 
-                replace = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN %s;" + RESET, tableName, def.trim());
+                insert = String.format(ITALIC + "ALTER TABLE %s MODIFY COLUMN %s;" + RESET, tableName, def.trim());
             }
             case "column DB" -> replace = String.format(ITALIC + "ALTER TABLE %s DROP COLUMN %s;" + RESET, tableName, columnName);
             case "column IDE" -> {
@@ -376,6 +378,7 @@ public class GmaChecker {
             }
             case "isUnique IDE" -> insert = String.format(ITALIC + "ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);" + RESET,
                     tableName, columnName + "_unique", columnName);
+
             default -> {
                 System.out.println(YELLOW + "\"No action for this column type.\"" + RESET);
                 pauseForEnter(scanner);
@@ -807,7 +810,7 @@ public class GmaChecker {
 //                    IndexesCheck check = new IndexesCheck(index.getIndexGroupName(),index.getColumns().toArray(new ColumnDTO[0]));
 //                    for (ColumnDTO col : remainingCols) {
 //
-//
+//ask
 //                    }
 //                    check.setType("index DB Columns");
 //
@@ -1495,3 +1498,4 @@ public class GmaChecker {
 
 
 }
+

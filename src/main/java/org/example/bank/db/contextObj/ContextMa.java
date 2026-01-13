@@ -1,13 +1,17 @@
 package org.example.bank.db.contextObj;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.example.bank.db.contextObj.match.ContextInterface;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class ContextMa implements ContextInterface {
     String ma_name;
     String[] ma_tags;
     String[] ma_description;
+    @JsonProperty("ma_rules")
+    Rules rules;
 
     @Override
     public String toString() {
@@ -18,7 +22,26 @@ public class ContextMa implements ContextInterface {
                 '}';
     }
 
+    public Rules getRules(){
+        return rules;
+    }
 
+
+    public String getMa_name() {
+        return ma_name;
+    }
+
+    public String[] getMa_tags() {
+        return ma_tags;
+    }
+
+    public String[] getMa_description() {
+        return ma_description;
+    }
+
+    public void setRules(Rules rules) {
+        this.rules = rules;
+    }
 
     public void setMa_name(String ma_name) {
         this.ma_name = ma_name;

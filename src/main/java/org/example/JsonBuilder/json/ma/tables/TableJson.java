@@ -540,23 +540,29 @@ public class TableJson {
     public String toString() {
         return "TableJson{" +
                 "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", tags=" + Arrays.toString(tags) +
-                ", tableId='" + tableId + '\'' +
-                ", tableType='" + tableType + '\'' +
-                ", columns=" + Arrays.toString(columns) +
-
-                ", queries=" + Arrays.toString(tableQueries) +
-                ", triggers=" + Arrays.toString(triggers) +
-                ", customConstraints=" + Arrays.toString(customConstraints) +
-                ", columnGroups=" + Arrays.toString(columnGroups) +
-                ", uniqueColumnGroups=" + Arrays.toString(uniqueColumnGroups) +
-                ", dependencies=" + Arrays.toString(dependencies) +
-                ", indexes=" + Arrays.toString(indexes) +
+                "ma_name='" + identifier.getMaName() + '\'' +
                 '}';
     }
+
 
     public IndexJson[] getIndexes() {
         return indexes;
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TableJson tableJson = (TableJson) o;
+        return Objects.equals(name, tableJson.name) && Objects.equals(identifier.getMaName(), tableJson.identifier.getMaName() );
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(name,identifier.getMaName());
+
+
+        return result;
+    }
+
+
 }

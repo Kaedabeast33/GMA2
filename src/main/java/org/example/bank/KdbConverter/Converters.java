@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class Converters {
 
@@ -14,31 +15,31 @@ public class Converters {
             new EntityValue<>(input == null ? null : input.toString(), String.class);
 
     public static final KdbConverter<Object, Integer> INTEGER = input -> {
-        if (input == null) return new EntityValue<>(null, Integer.class);
+        if (input == null|| Objects.equals(input.toString(), "")) return new EntityValue<>(null, Integer.class);
         if (input instanceof Integer) return new EntityValue<>((Integer) input, Integer.class);
         return new EntityValue<>(Integer.parseInt(input.toString()), Integer.class);
     };
 
     public static final KdbConverter<Object, Long> LONG = input -> {
-        if (input == null) return new EntityValue<>(null, Long.class);
+        if (input == null|| Objects.equals(input.toString(), "")) return new EntityValue<>(null, Long.class);
         if (input instanceof Long) return new EntityValue<>((Long) input, Long.class);
         return new EntityValue<>(Long.parseLong(input.toString()), Long.class);
     };
 
     public static final KdbConverter<Object, Float> FLOAT = input -> {
-        if (input == null) return new EntityValue<>(null, Float.class);
+        if (input == null|| Objects.equals(input.toString(), "")) return new EntityValue<>(null, Float.class);
         if (input instanceof Float) return new EntityValue<>((Float) input, Float.class);
         return new EntityValue<>(Float.parseFloat(input.toString()), Float.class);
     };
 
     public static final KdbConverter<Object, Double> DOUBLE = input -> {
-        if (input == null) return new EntityValue<>(null, Double.class);
+        if (input == null|| Objects.equals(input.toString(), "")) return new EntityValue<>(null, Double.class);
         if (input instanceof Double) return new EntityValue<>((Double) input, Double.class);
         return new EntityValue<>(Double.parseDouble(input.toString()), Double.class);
     };
 
     public static final KdbConverter<Object, Integer> BOOLEAN = input -> {
-        if (input == null) {
+        if (input == null|| Objects.equals(input.toString(), "")) {
             return new EntityValue<>(null, Integer.class);
         }
 
@@ -105,4 +106,5 @@ public class Converters {
                 DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS")), LocalTime.class);
     };
 }
+
 
