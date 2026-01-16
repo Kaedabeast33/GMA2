@@ -1,15 +1,13 @@
 package org.example.service.RAG.ContextGrabber;
 
+import org.apache.tomcat.util.digester.Rule;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.bank.db.PythonContextBuilderJson;
-import org.example.bank.db.contextObj.ContextColumn;
-import org.example.bank.db.contextObj.ContextMa;
-import org.example.bank.db.contextObj.ContextObj;
+import org.example.bank.db.contextObj.*;
 
-import org.example.bank.db.contextObj.ContextTable;
 import org.example.bank.db.contextObj.match.JsonColumnContextMatch;
 import org.example.bank.db.contextObj.match.JsonMaContextMatch;
 import org.example.bank.db.contextObj.match.JsonTableContextMatch;
@@ -21,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.example.bank.OutputClassBank.KDBContext.KDB_CONTEXT;
@@ -28,10 +28,153 @@ import static org.example.bank.commonValues.AppConfig.*;
 
 @Service
 public class ContextService {
+
+    final String EQUALS = "eq";
+    final String NOT_EQUALS = "neq";
+    final String GREATER_THAN = ">";
+    final String LESS_THAN = "<";
+    final String BETWEEN = "btw";
+
+    public String whereBuilder(Rules rules){
+        List<String> clauses = new ArrayList<>();
+
+        rules.getMap().forEach((key, value) -> {
+            if (value == null) {
+                throw new IllegalArgumentException("Value for key " + key + " is null");
+            }
+            for (int i = 0; i < value.size(); i++) {
+                String nextValue = value.get(i).toString().trim();
+                String modifier = null;
+                List<String> values;
+
+                Pattern modifierPattern = Pattern.compile("%30(.*?)%30;");
+                Matcher matcher = modifierPattern.matcher(nextValue);
+                if (matcher.find()) {
+                    modifier = matcher.group(1);
+                    nextValue = nextValue.replaceAll("%30.*?%30;", "").trim();
+                }
+
+                values = Arrays.stream(nextValue.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList();
+
+                if (modifier == null || modifier.equalsIgnoreCase(EQUALS)) {
+                    if (values.size() > 1) {
+                        String inClause = values.stream()
+                                .map(val -> String.format("'%s'", val))
+                                .collect(Collectors.joining(", "));
+                        clauses.add(String.format("%s IN (%s)", key, inClause));
+                        continue;
+                    } else {
+                        clauses.add(String.format("%s = '%s'", key, values.get(0)));
+                        continue;
+                    }
+                } else if (modifier.equalsIgnoreCase(NOT_EQUALS)) {
+                    if (values.size() > 1) {
+                        String inClause = values.stream()
+                                .map(val -> String.format("'%s'", val))
+                                .collect(Collectors.joining(", "));
+                        clauses.add(String.format("%s NOT IN (%s)", key, inClause));
+                        continue;
+                    } else {
+                        clauses.add(String.format("%s != '%s'", key, values.get(0)));
+                        continue;
+                    }
+                } else if (modifier.equalsIgnoreCase(GREATER_THAN)) {
+                    if (values.size() > 1) {
+                        throw new IllegalArgumentException("GREATER_THAN modifier cannot have multiple values for key: " + key);
+                    }
+                    clauses.add(String.format("%s > '%s'", key, values.get(0)));
+                    continue;
+                } else if (modifier.equalsIgnoreCase(LESS_THAN)) {
+                    if (values.size() > 1) {
+                        throw new IllegalArgumentException("LESS_THAN modifier cannot have multiple values for key: " + key);
+                    }
+                    clauses.add(String.format("%s < '%s'", key, values.get(0)));
+                    continue;
+                } else if (modifier.equalsIgnoreCase(BETWEEN) || (modifier != null && modifier.equalsIgnoreCase("btwn"))) {
+                    if (values.size() != 2) {
+                        throw new IllegalArgumentException("BETWEEN modifier requires exactly two values for key: " + key);
+                    }
+                    clauses.add(String.format("%s BETWEEN '%s' AND '%s'", key, values.get(0), values.get(1)));
+                    continue;
+                } else {
+                    throw new IllegalArgumentException("Unsupported rule: " + modifier + " for " + value);
+                }
+            }
+        });
+
+        return String.join(" AND ", clauses);
+    }
+
+
+
+
+    public List<String> recursiveQueryBuild(Map<ColumnJson, Rules> columnRulesMap, List<String> queries) {
+        if (queries == null) queries = new ArrayList<>();
+        if (columnRulesMap == null || columnRulesMap.isEmpty()) return queries;
+
+        // operate on a copy to avoid modifying caller's map and to prevent concurrent modification
+        Map<ColumnJson, Rules> remaining = new LinkedHashMap<>(columnRulesMap);
+
+        while (!remaining.isEmpty()) {
+            Iterator<Map.Entry<ColumnJson, Rules>> it = remaining.entrySet().iterator();
+            System.out.println("\n--------------------\n");
+            Map.Entry<ColumnJson, Rules> seedEntry = it.next();
+            ColumnJson seedCol = seedEntry.getKey();
+            Rules seedRules = seedEntry.getValue();
+            System.out.println(seedCol+" with rules "+seedRules);
+
+            String maName = seedCol.getIdentifier().getMaName();
+            String tableName = seedCol.getIdentifier().getTableName();
+
+            List<String> columnNames = new ArrayList<>();
+            List<ColumnJson> toRemove = new ArrayList<>();
+
+            // collect all columns that match ma/table and rules of the seed
+            for (Map.Entry<ColumnJson, Rules> e : remaining.entrySet()) {
+                ColumnJson col = e.getKey();
+                Rules r = e.getValue();
+                if (Objects.equals(maName, col.getIdentifier().getMaName())
+                        && Objects.equals(tableName, col.getIdentifier().getTableName())
+                        && Objects.equals(seedRules, r)) {
+                    System.out.println("adding column "+col+" with rules "+r);
+                    columnNames.add(col.getName());
+                    toRemove.add(col);
+                }
+            }
+
+            // remove matched columns from remaining
+            for (ColumnJson c : toRemove) {
+                remaining.remove(c);
+            }
+
+            String selectColumns = String.join(", ", columnNames);
+            if (seedRules == null) throw new IllegalArgumentException("Rules cannot be null for column: " + selectColumns);
+            String fromClause = String.format("%s.%s", maName, tableName);
+            String whereClause = whereBuilder(seedRules);
+
+            String query = String.format(
+                    "SELECT\n    %s\nFROM\n    %s\nWHERE\n    %s",
+                    selectColumns, fromClause, whereClause
+            );
+            queries.add(query);
+        }
+
+        return queries;
+    }
+
+
     public void buildSelectString(ContextObj contextObj) {
         System.out.println(contextObj);
 
-        String s = getContextMySql(contextObj);
+         ColWhereList colWhereList =  getContextMySql(contextObj);
+         List<String> queryList = new ArrayList<>();
+
+
+         queryList = recursiveQueryBuild(colWhereList.getColumnJsonList(),queryList);
+        System.out.println(queryList);
 
 
         /*
@@ -43,7 +186,7 @@ public class ContextService {
     }
 
 
-    private String getContextMySql(ContextObj context) {
+    private ColWhereList getContextMySql(ContextObj context) {
 
         GMAJson gma = KDB_CONTEXT.getGmaByName(getGmaName());
         List<MAJson> gmaMas = gma.getMa();
@@ -82,12 +225,12 @@ public class ContextService {
 //
 //            }
 
-
+            return whereColumns;
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return "";
+
     }
 
     private ColWhereList getListColumns(ContextColumn[] context, TabWhereList tableJsons, Connection connection) {

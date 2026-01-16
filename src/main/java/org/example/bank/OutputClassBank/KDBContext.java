@@ -384,7 +384,7 @@ public enum KDBContext {
             }
         }
 
-        entityManager.createNativeQuery(drop).executeUpdate();
+//        entityManager.createNativeQuery(drop).executeUpdate();
     }
 
     public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException {
@@ -437,7 +437,7 @@ public enum KDBContext {
         }
 
 
-        entityManager.createNativeQuery(drop).executeUpdate();
+//        entityManager.createNativeQuery(drop).executeUpdate();
     }
 
 //    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager) throws ParseException {

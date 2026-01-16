@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/python")
+@RequestMapping("/gma/v1/python")
 public class PythonController {
 
     @Autowired
