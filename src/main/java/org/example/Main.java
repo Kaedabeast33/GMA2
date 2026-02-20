@@ -59,7 +59,7 @@ public class Main {
         Actions actions = context.getBean(Actions.class);
         actions.mainRun();
 
-        actions.writeDbGmaStructure();
+//        actions.writeDbGmaStructure();
 
 
 
