@@ -4,50 +4,20 @@ package org.example;
 //import org.example.dorm.employee_alignment.align_emp_upline_history.TAB_align_emp_upline_history;
 
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import jakarta.persistence.Column;
-import jakarta.persistence.Query;
-import org.example.ClassOutputCreator.templates.ColumnTemplate;
-import org.example.ClassOutputCreator.templates.TableTemplate;
-
-
 //import org.example.output.dorm.GMA_dorm;
 //import org.example.output.dorm.orders.master_raw_orders.TAB_master_raw_orders;
 
 
 //import org.example.output.dorm.GMA_dorm;
 //import org.example.output.dorm.orders.master_raw_orders.TAB_master_raw_orders;
-
-import org.example.JsonBuilder.json.GMAJson;
-import org.example.JsonBuilder.json.QueryGroupJson;
-import org.example.JsonBuilder.json.ma.MAJson;
-import org.example.JsonBuilder.json.ma.PipelineJson;
-import org.example.JsonBuilder.json.ma.tables.*;
-import org.example.JsonBuilder.json.ma.tables.columns.*;
-import org.example.JsonBuilder.json.ma.tables.dependencies.DependencyJson;
-import org.example.JsonBuilder.json.ref.RefColumnJson;
-import org.example.JsonBuilder.json.ref.RefTableJson;
-import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
-import org.example.bank.JsonBuilderRef.BlankJsonGenerator;
-import org.example.bank.OutputClassBank.KDBContext;
-import org.example.bank.OutputClassBank.KdbColumnPersona;
 
 
 import org.example.service.Actions;
+import org.example.service.TestService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-
-import java.nio.channels.Pipe;
-import java.sql.Connection;
-import java.util.List;
-import java.util.Scanner;
-
-import static org.example.JsonBuilder.json.GMAJson.createBlankInstance;
-import static org.example.bank.OutputClassBank.KDBContext.getConnection;
 
 @EnableConfigurationProperties
 @SpringBootApplication//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -57,7 +27,45 @@ public class Main {
     public static void main(String[] args) throws Exception {
         ApplicationContext context = SpringApplication.run(Main.class, args);
         Actions actions = context.getBean(Actions.class);
-        actions.mainRun();
+//        TestService service = context.getBean(TestService.class);
+
+
+        TestService testService = context.getBean(TestService.class);
+
+
+
+        actions.buildGmaContext();
+                    actions.mainRun();
+//        AIRMA_friend_airtable ma = new AIRMA_friend_airtable();
+//        AIRTAB_kaeden test = new AIRTAB_kaeden();
+//         test.getAIRCOL_name().setEntityValue("kaeden");
+//         test.getAIRCOL_status().setEntityValue(true);
+//
+//
+//        ma.saveAllAirtable(test, List.of(test), testService.getBearer(),toPersonaAirTemplate(List.of(test.getAIRCOL_name(),test.getAIRCOL_status())), toPersonaAirTemplate(List.of(test.getAIRCOL_name())));
+
+
+//        service.upload();
+
+
+
+        // Only run mainRun when NOT running in production profiles
+//        Environment env = context.getEnvironment();
+//        boolean isProd;
+//        try {
+//            isProd = env.acceptsProfiles(Profiles.of("production")) || env.acceptsProfiles(Profiles.of("prod"));
+//        } catch (NoSuchMethodError ignored) {
+//            String[] active = env.getActiveProfiles();
+//            isProd = Arrays.asList(active).contains("production") || Arrays.asList(active).contains("prod") || "production".equalsIgnoreCase(env.getProperty("spring.profiles.active"));
+//        }
+//
+//        if (!isProd) {
+//            actions.mainRun();
+//        } else {
+//            System.out.println("Skipping Actions.mainRun() because running in production profile.");
+//        }
+
+
 
 //        actions.writeDbGmaStructure();
 
