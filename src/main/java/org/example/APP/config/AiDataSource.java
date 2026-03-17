@@ -1,34 +1,32 @@
-package org.example.APP;
+package org.example.APP.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
 
 import javax.sql.DataSource;
 
 @Configuration
-public class ClientDataSource {
+public class AiDataSource {
 
-    // Create a DataSourceProperties bean for Client
+    // Create a DataSourceProperties bean for Ai
     @Bean
-    @Primary
-    @ConfigurationProperties("spring.datasource.client")
-    public DataSourceProperties dataSourcePropertiesClient(){
+    @ConfigurationProperties("spring.datasource.ai")
+    public DataSourceProperties dataSourcePropertiesAi(){
         return new DataSourceProperties();
     }
 
     @Bean
-    @Primary
-    @Qualifier("dataSourceClient")
-    public DataSource dataSourceClient(){
+    @Qualifier("dataSourceAi")
+    public DataSource dataSourceAi(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setUsername(dataSourcePropertiesClient().getUsername());
-        dataSource.setPassword(dataSourcePropertiesClient().getPassword());
-        dataSource.setUrl(dataSourcePropertiesClient().getUrl());
+        dataSource.setUsername(dataSourcePropertiesAi().getUsername());
+        dataSource.setPassword(dataSourcePropertiesAi().getPassword());
+        dataSource.setUrl(dataSourcePropertiesAi().getUrl());
         return dataSource;
     }
 }
