@@ -25,7 +25,7 @@ public class TableClassCreator {
 
 
     public TableClassCreator(TableJson table, List<String> curDir, List<String> pkgDir, String gmaName, String maName) throws IOException {
-
+        System.out.println("Creating TableClassCreator for table: " + table.getName());
         this.name = table.getName();
 
         // Make a copy so each table has its own unique directory path
@@ -495,7 +495,7 @@ public class TableClassCreator {
                 toArrayLiteral(safeArray(tab.getTags())),  // Better than Arrays.toString
                 wrapWithQuotes(tab.getTableId()),
                 wrapWithQuotes(gmaName),
-                wrapWithQuotes(maName)
+                wrapWithQuotes(tab.getIdentifier().getMaName())
         );
 
 // Write or overwrite file

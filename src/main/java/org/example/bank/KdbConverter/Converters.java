@@ -1,6 +1,9 @@
 package org.example.bank.KdbConverter;
 
+
+
 import org.example.bank.JsonBuilderRef.EntityValue;
+import org.example.bank.MultiFormatTimestampFormatter;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -10,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import static org.example.bank.KdbConverter.DateTimeUtils.parseFlexible;
+
 
 public class Converters {
 
@@ -106,7 +110,8 @@ public class Converters {
 //        System.out.println("Converting to TIMESTAMP: " + input);
         if (input == null) return new EntityValue<>(null, Timestamp.class);
         if (input instanceof Timestamp) return new EntityValue<>((Timestamp) input, Timestamp.class);
-        return new EntityValue<>(Timestamp.valueOf(input.toString()), Timestamp.class);
+
+        return new EntityValue<>(MultiFormatTimestampFormatter.parseDateAndTime(input.toString()), Timestamp.class);
     };
 
     public static final KdbConverter<Object, LocalDateTime> DATETIME = input -> {

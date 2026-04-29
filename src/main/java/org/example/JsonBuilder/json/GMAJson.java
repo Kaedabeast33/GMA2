@@ -1,6 +1,7 @@
 package org.example.JsonBuilder.json;
 
 import org.example.ClassOutputCreator.templates.KdbGma;
+import org.example.JsonBuilder.json.ma.AiMAJson;
 import org.example.JsonBuilder.json.ma.AirMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,8 @@ public class GMAJson {
 
     List<MAJson> ma;
     List<AirMAJson> airMa;
+    List<AiMAJson> aiMa;
+
     SetJson[] sets;
     QueryGroupJson[] queryGroups;
 
@@ -159,4 +162,11 @@ public class GMAJson {
         }
     }
 
+    public void setAiMa(List<AiMAJson> aiMAJsons) {
+        this.aiMa = aiMAJsons;
+    }
+
+    public List<AiMAJson> getAiMa() {
+        return aiMa;
+    }
 }

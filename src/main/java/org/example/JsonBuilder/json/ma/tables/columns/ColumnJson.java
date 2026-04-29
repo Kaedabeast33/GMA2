@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.example.JsonBuilder.json.ref.RefColumnJson;
 import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
 import org.example.bank.Annotations.*;
+import org.example.bank.KdbConverter.DefaultKdbConverter;
 import org.example.bank.OutputClassBank.KdbColumnPersona;
 import org.example.bank.commonValues.Identifier;
 
@@ -12,6 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
+import static org.example.bank.AppConfig.getJavaDir;
 import static org.example.bank.commonValues.ValueTypes.TYPE_MAP;
 
 
@@ -101,7 +103,7 @@ public class ColumnJson implements KdbColumnPersona {
             this.isPrimaryKey = true;
             this.isRequired = true;
         }
-        this.kdbConverter = kdbColumn.converter().getName();
+        this.kdbConverter = kdbColumn.converter()!=null? kdbColumn.converter().getName(): getJavaDir()+ ".bank.KdbConverter.DefaultKdbConverter";
         this.isEmbedding = kdbEmbedding != null;
 
     }
@@ -140,6 +142,10 @@ public class ColumnJson implements KdbColumnPersona {
     }
 
     public String getName() {
+        return name.replace(" ", "_").toLowerCase();
+    }
+
+    public String getRealName() {
         return name;
     }
 

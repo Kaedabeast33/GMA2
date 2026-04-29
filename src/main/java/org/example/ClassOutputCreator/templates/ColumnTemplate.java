@@ -6,7 +6,7 @@ import org.example.bank.KdbConverter.DefaultKdbConverter;
 import org.example.bank.KdbConverter.KdbConverter;
 import org.example.bank.KdbConverter.KdbConverterFactory;
 import org.example.bank.OutputClassBank.KdbColumnPersona;
-import org.example.service.RAG.Python.PythonService;
+import org.example.service.PythonService;
 
 
 import java.util.List;
@@ -167,6 +167,10 @@ public abstract class ColumnTemplate implements KdbColumnPersona, GenericColumnI
     }
 
     public String getName() {
+        return name.replace(" ", "_").toLowerCase();
+    }
+
+    public String getRealName() {
         return name;
     }
 

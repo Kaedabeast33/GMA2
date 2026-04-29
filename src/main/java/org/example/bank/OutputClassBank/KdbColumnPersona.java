@@ -5,6 +5,8 @@ public interface KdbColumnPersona {
 
         String getName();
 
+        String getRealName();
+
         boolean isNullable();
 
         boolean isEditable();

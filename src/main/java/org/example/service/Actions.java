@@ -39,7 +39,7 @@ import static org.example.ClassOutputCreator.ClassCreator.getWorkingDirectory;
 import static org.example.ClassOutputCreator.ClassCreator.jsonToObjects;
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
 import static org.example.JsonBuilder.json.GMAJson.createBlankInstance;
-import static org.example.bank.commonValues.AppConfig.*;
+import static org.example.bank.AppConfig.*;
 
 
 @Component
@@ -231,6 +231,7 @@ public class Actions {
     public void buildClasses() {
         try {
             GMAJson gma = kdbContext.getGmaByName(getGmaName());
+            System.out.println("GSON GMA"+gson.toJson(gma));
             jsonToObjects(gma);
             Files.writeString(
                     Paths.get(workingDir, "db.json"),
@@ -281,6 +282,7 @@ public class Actions {
                    
                     """;
 
+            System.out.println(getJdbcPassword()+" "+getJdbcUser()+" "+getJdbcUrl());
             try (Connection connection = DriverManager.getConnection(getJdbcUrl(), getJdbcUser(), getJdbcPassword());
 
 
@@ -330,6 +332,7 @@ public class Actions {
                         %s
                     ON DUPLICATE KEY UPDATE column_json  = VALUES(column_json)
                     """, String.join(",\n", columnFilterValues));
+                    System.out.println(q);
 
 
                     String delete ="delete from gma_resources.gma_items";
@@ -338,6 +341,7 @@ public class Actions {
 
                 }catch (Exception e){
                     System.out.println("\u001B[93m gma_items failed \u001B[0m "+e);
+                    e.printStackTrace();
                 }
 
             }

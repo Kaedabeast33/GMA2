@@ -15,13 +15,13 @@ public class ClientDataSource {
 
     // Create a DataSourceProperties bean for Client
     @Bean
-    @ConfigurationProperties("spring.datasource.client")
+    @ConfigurationProperties("spring.datasource.clientmed")
     public DataSourceProperties dataSourcePropertiesClient(){
         return new DataSourceProperties();
     }
 
     @Bean
-    @Qualifier("dataSourceClient")
+    @Qualifier("dataSourceClientMed")
     public DataSource dataSourceClient(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setUsername(dataSourcePropertiesClient().getUsername());

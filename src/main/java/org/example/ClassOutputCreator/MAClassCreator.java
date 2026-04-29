@@ -23,6 +23,7 @@ public class MAClassCreator {
     List<String> pkgDir;
 
     public MAClassCreator(MAJson ma, List<String> curDir, List<String> pkgDir, String gmaName) throws IOException {
+
         this.name = ma.getName();
 
         // Create a new directory path for this MA level
@@ -50,9 +51,11 @@ public class MAClassCreator {
     }
 
     private void createMaClass(MAJson ma, List<String> curDir, List<String> pkgDir, String gmaName) throws IOException {
+
         String className = "MA_" + ma.getName();
         Path path = Path.of(String.join(File.separator, curDir), className + ".java");
-//        System.out.println("creating ma for " + ma.getName());
+        Files.createDirectories(path.getParent());
+        System.out.println("creating ma for " + ma.getName());
         List<String> childDirs = new ArrayList<>();
         for (TableJson table : ma.getTables()) {
             childDirs.add(table.getName() + ".TAB_" + table.getName());

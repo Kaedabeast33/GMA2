@@ -13,7 +13,7 @@ package org.example;
 
 
 import org.example.service.Actions;
-import org.example.service.TestService;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,15 +27,15 @@ public class Main {
     public static void main(String[] args) throws Exception {
         ApplicationContext context = SpringApplication.run(Main.class, args);
         Actions actions = context.getBean(Actions.class);
-//        TestService service = context.getBean(TestService.class);
-
-
-        TestService testService = context.getBean(TestService.class);
-
-
 
         actions.buildGmaContext();
-                    actions.mainRun();
+        actions.mainRun();
+
+
+
+
+
+
 //        AIRMA_friend_airtable ma = new AIRMA_friend_airtable();
 //        AIRTAB_kaeden test = new AIRTAB_kaeden();
 //         test.getAIRCOL_name().setEntityValue("kaeden");

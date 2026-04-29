@@ -2,7 +2,8 @@ package org.example.ClassOutputCreator;
 
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
-import org.example.bank.commonValues.AppConfig;
+import org.example.bank.AppConfig;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.example.bank.commonValues.AppConfig.getGmaName;
+import static org.example.bank.AppConfig.getGmaName;
+
 
 public class ClassCreator {
     static String workingDir = Paths.get("").toAbsolutePath().toString();

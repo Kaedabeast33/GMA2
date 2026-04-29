@@ -15,6 +15,7 @@ public class ColumnGroupJson {
 
     ColumnDTO[] groupColumns;
 
+
     public List<String> getgroupColumns() {
         return Arrays.stream(groupColumns).map(ColumnDTO::getName).toList();
 
@@ -24,6 +25,28 @@ public class ColumnGroupJson {
     public ColumnGroupJson() {
 
     }
+
+    public static ColumnGroupJson buildAiColumnGroupJson(Map.Entry<String, List<AiColumnJson>> value) {
+        ColumnGroupJson columnGroupJson =  new ColumnGroupJson();
+
+        columnGroupJson.name = value.getKey();
+        for (int i = 0; i < value.getValue().size(); i++) {
+            if (i == 0) {
+                columnGroupJson.groupColumns = new ColumnDTO[value.getValue().size()];
+            }
+            columnGroupJson.groupColumns[i] = new ColumnDTO(value.getValue().get(i));
+
+        }
+
+        GroupDTO group = new GroupDTO(columnGroupJson.name, columnGroupJson.columnGroupId, Objects.requireNonNull(columnGroupJson.groupColumns));
+
+        for (int j = 0; j < Objects.requireNonNull(columnGroupJson.groupColumns).length; j++) {
+            value.getValue().get(j).addColumnGroup(group);
+        }
+
+        return columnGroupJson;
+    }
+
 
 
     public static ColumnGroupJson buildAirColumnGroupJson(Map.Entry<String, List<AirColumnJson>> value) {

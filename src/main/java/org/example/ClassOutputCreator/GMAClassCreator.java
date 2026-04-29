@@ -4,7 +4,8 @@ package org.example.ClassOutputCreator;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.AirMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
-import org.example.bank.commonValues.AppConfig;
+import org.example.bank.AppConfig;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +47,9 @@ public class GMAClassCreator {
         this.pkgDir.add(outputDir);
         this.pkgDir.add(name);
 //        packageDefault.add(name);
+        System.out.println(pkgDir+" PKGDIR GMA" +"added" +name);
+
+//        this.aiMaList  = gma.getAiMa().stream()
 
         this.airMaList = gma.getAirMa().stream()
                 .map(ma -> {
@@ -71,7 +75,7 @@ public class GMAClassCreator {
     }
 
     private void createGmaClass(GMAJson gma, List<String> curDir, List<String> pkgDir) throws IOException {
-//        System.out.println("creating GMA for " + gma.getName());
+        System.out.println("creating GMA for " + gma.getName());
         String className = "GMA_" + gma.getName();
         Path path = Path.of(String.join(File.separator, curDir), className + ".java");
         Files.createDirectories(path.getParent());
@@ -97,15 +101,16 @@ public class GMAClassCreator {
         generateGmaFields(gma, path);
         generateGmaMas(gma, path);
         generateGmaAirMas(gma, path);
+        Files.writeString(path, "\n}", StandardOpenOption.APPEND); // Close the class definition
 
 
     }
 
     private void generateGmaAirMas(GMAJson gma, Path path) {
         for (int i = 0; i < gma.getAirMa().size(); i++) {
-                String className = "AIRMA_" + gma.getAirMa().get(i).getName();
-                String maFormat =
-                        String.format("""
+            String className = "AIRMA_" + gma.getAirMa().get(i).getName();
+            String maFormat =
+                    String.format("""
                                         
                                             private final %s %s = new %s();
                                             public %s get%s() {
@@ -113,15 +118,15 @@ public class GMAClassCreator {
                                             }
                                         
                                         """,
-                                className, className, className, className, className, className
+                            className, className, className, className, className, className
 
-                        );
-                try {
-                    Files.writeString(path, maFormat, StandardOpenOption.APPEND);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                    );
+            try {
+                Files.writeString(path, maFormat, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+        }
     }
 
     static void generatePomImports(Path path, List<String> imports) {
@@ -149,7 +154,7 @@ public class GMAClassCreator {
 
 //    package cl.airtable.raw_k_airtable.columns;
 
-//import org.example.gma.templates.ColumnTemplate;
+//import com.chipr.GMA.gma.templates.ColumnTemplate;
 
     static void generateExceptions(List<String> exceptions, Path path) {
         for (String exception : exceptions) {
@@ -289,7 +294,7 @@ public class GMAClassCreator {
             Files.writeString(path, maFormat, StandardOpenOption.APPEND);
 
         }
-        Files.writeString(path, "\n}", StandardOpenOption.APPEND); // Close the class definition
+
     }
 
     static void generateGmaFields(GMAJson gma, Path path) throws IOException {

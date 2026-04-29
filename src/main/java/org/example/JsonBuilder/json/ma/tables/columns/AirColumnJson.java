@@ -82,6 +82,10 @@ public class AirColumnJson implements KdbAirColumnPersona {
     }
 
     public String getName() {
+        return name.replace(" ", "_").toLowerCase();
+    }
+
+    public String getRealName() {
         return name;
     }
 

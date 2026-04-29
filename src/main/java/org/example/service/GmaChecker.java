@@ -18,7 +18,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.example.bank.commonValues.AppConfig.*;
+import static org.example.bank.AppConfig.*;
 
 
 public class GmaChecker {

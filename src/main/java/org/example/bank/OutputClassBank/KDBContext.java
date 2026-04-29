@@ -1,6 +1,8 @@
 package org.example.bank.OutputClassBank;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import okhttp3.*;
 import org.example.ClassOutputCreator.templates.AirColumnTemplate;
@@ -13,6 +15,8 @@ import org.example.JsonBuilder.json.ma.tables.columns.AirColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -23,9 +27,10 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.example.bank.AppConfig.*;
 import static org.example.bank.OutputClassBank.KdbColumnWrapper.safeGetValue;
 import static org.example.bank.OutputClassBank.QueryResult.getQueryResultObj;
-import static org.example.bank.commonValues.AppConfig.*;
+
 import static org.example.bank.commonValues.ColumnConverter.toPersonaJson;
 
 public enum KDBContext {
@@ -1468,118 +1473,253 @@ public enum KDBContext {
     }
 
 
-//        {
-    public void saveAllAirtable(AirtableInterface table, List<AirtableInterface> entities, String bearer, List<KdbAirColumnPersona> upsertFields, List<KdbAirColumnPersona> checkFields)  {
+    public QueryResult queryAirtable(AirtableInterface table, List<AirColumnTemplate> byCols ,List<KdbAirColumnPersona>getCols, String bearer) {
+
+        Map<String,List<Object>> results = table.getAllColumns().stream().collect(Collectors.toMap(AirColumnTemplate::getRealName,air->new ArrayList<>())) ;
 
         OkHttpClient client = new OkHttpClient();
         String url = "https://api.airtable.com/v0/";
         String tableUrl = url + table.getAppId() + "/" + table.getTableId();
+        List<String> params = new ArrayList<>();
+        String fieldsParam = "";
+
+        if (!getCols.isEmpty()) {
+            fieldsParam = getCols.stream()
+                    .map(KdbAirColumnPersona::getRealName)
+                    .map(name -> "fields[]=" + URLEncoder.encode(name, StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("&"));
+            params.add(fieldsParam);
+        }
+        String filterByFormula = "";
+
+        if (!byCols.isEmpty()) {
+
+            String formula = byCols.stream()
+                    .map(col -> "{" + col.getRealName() + "}=\""
+                            + col.getQueryMatchStrings().get(0) + "\"")
+                    .collect(Collectors.joining(","));
+
+            filterByFormula = "&filterByFormula="
+                    + URLEncoder.encode("AND(" + formula + ")", StandardCharsets.UTF_8);
+            params.add(filterByFormula);
+        }
 
 
-
-        System.out.println(tableUrl+" table url");
-
-        String mergeOn = checkFields.stream().map(KdbAirColumnPersona::getName).collect(Collectors.joining(","));
-        List<String> getFieldValues = new ArrayList<>();
-
-
-
-
-        for(AirtableInterface airtableInterface : entities) {
-
-
-            for (KdbAirColumnPersona field : upsertFields) {
-                AirColumnTemplate upsertColumn =  airtableInterface.getAllColumns().stream().filter(air-> Objects.equals(air.getName(), field.getName())).findFirst().orElseThrow(() -> new RuntimeException("field " + field.getName() + " not found in airtable interface"));
-
-
-                Object value = safeGetValue(upsertColumn);
-                if(upsertColumn.getEntityValue().getType()!=Boolean.class){
-                    System.out.println("not boolean");
-                    value = "\""+value+"\"";
+         String offset = null;
+            do {
+                if(offset != null) {
+                    params.add("offset=" + offset);
+                }
+                String queryString = String.join("&", params);
+                if(!queryString.isEmpty()) {
+                    queryString = "?" + queryString;
                 }
 
-                getFieldValues.add(
-                        String.format(
-                                """
-                                "%s": %s
-                                """,
-                                upsertColumn.getName(),
-                                value
-                        )
-                );
-            }
-        }
 
+                Request request = new Request.Builder()
+                        .url(tableUrl + queryString)
+                        .method("GET", null)
+                        .header("Authorization", "Bearer " + bearer)
+                        .build();
 
-        String fields = String.format("""
-                \t"fields":{
-                    \t%s
-                \t}
-                """,String.join(",\n",getFieldValues) );
+                try (Response response = client.newCall(request).execute()) {
+                    String responseBody = response.body().string();
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode rootNode = mapper.readTree(responseBody);
+                    JsonNode recordsNode = rootNode.get("records");
+                    for(JsonNode recordNode : recordsNode) {
+                        JsonNode fieldsNode = recordNode.get("fields");
+                        for (KdbAirColumnPersona col : getCols) {
 
-        String preformUpsert ="";
-        if(!checkFields.isEmpty()){
-            preformUpsert = String.format("""
-                    ,"performUpsert": {
-                                  "fieldsToMergeOn": [%s]
-                                }
-                    """,checkFields.stream().map(KdbAirColumnPersona::getName).map(name-> "\""+name+"\"").collect(Collectors.joining(",")));
-        }
+                            String key = col.getRealName();
+                            JsonNode valueNode = fieldsNode.get(key);
 
-        String records = String.format("""
-                
-                {
-                  "typecast": true,
-                  "records": [
-                    {
-                      %s
+                            results.computeIfPresent(key, (k, v) -> {
+                                v.add(valueNode != null ? valueNode.asText() : null);
+                                return v;
+                            });
+                        }
                     }
-                  ]
-                  %s
+
+
+
+                    // Process recordsNode and populate results as needed
+                    params.remove(params.size()-1); // remove old offset
+
+                    if (rootNode.has("offset") && !rootNode.get("offset").isNull()) {
+                        offset = "offset="+rootNode.get("offset").asText();
+                    } else {
+                        offset = null; // No more pages
+                    }
+
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-                
-                
-                
+            } while (offset != null);
 
-                
-                
-                """,fields,preformUpsert);
-
-        System.out.println(records+" records to be upserted");
+            return new QueryResult(results);
 
 
 
-
-
-        RequestBody requestBody = RequestBody.create(
-                records, MediaType.parse("application/json"));
-
-        Request    request= null;
-        if(checkFields.isEmpty()){
-            request = new Request.Builder()
-                    .url(tableUrl)
-                    .post(requestBody)
-                    .header("Authorization", "Bearer " + bearer)
-                    .build();
-        }else{
-            request = new Request.Builder()
-                    .url(tableUrl)
-                    .patch(requestBody)
-                    .header("Authorization", "Bearer " + bearer)
-                    .build();
-        }
-
-
-
-
-        try(Response response = client.newCall(request).execute()){
-            System.out.println(response.body().string());
-        } catch (Exception e) {;
-            System.out.println("Error executing upsert request: " + records);
-            throw new RuntimeException(e);
-        }
 
     }
+
+    public QueryResult queryAirtable(AirtableInterface table,String filterByFormula, List<KdbAirColumnPersona>getCols, String bearer) {
+
+        Map<String,List<Object>> results = table.getAllColumns().stream().collect(Collectors.toMap(AirColumnTemplate::getRealName,air->new ArrayList<>())) ;
+
+        OkHttpClient client = new OkHttpClient();
+        String url = "https://api.airtable.com/v0/";
+        String tableUrl = url + table.getAppId() + "/" + table.getTableId();
+        List<String> params = new ArrayList<>();
+        String fieldsParam = "";
+
+        if (!getCols.isEmpty()) {
+            fieldsParam = getCols.stream()
+                    .map(KdbAirColumnPersona::getRealName)
+                    .map(name -> "fields[]=" + URLEncoder.encode(name, StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("&"));
+            params.add(fieldsParam);
+        }
+
+            params.add(filterByFormula);
+
+
+
+        String offset = null;
+        do {
+            if(offset != null) {
+                params.add("offset=" + offset);
+            }
+            String queryString = String.join("&", params);
+            if(!queryString.isEmpty()) {
+                queryString = "?" + queryString;
+            }
+
+
+            Request request = new Request.Builder()
+                    .url(tableUrl + queryString)
+                    .method("GET", null)
+                    .header("Authorization", "Bearer " + bearer)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = response.body().string();
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode rootNode = mapper.readTree(responseBody);
+                JsonNode recordsNode = rootNode.get("records");
+                for(JsonNode recordNode : recordsNode) {
+                    JsonNode fieldsNode = recordNode.get("fields");
+                    for (KdbAirColumnPersona col : getCols) {
+
+                        String key = col.getRealName();
+                        JsonNode valueNode = fieldsNode.get(key);
+
+                        results.computeIfPresent(key, (k, v) -> {
+                            v.add(valueNode != null ? valueNode.asText() : null);
+                            return v;
+                        });
+                    }
+                }
+
+
+
+                // Process recordsNode and populate results as needed
+                params.remove(params.size()-1); // remove old offset
+
+                if (rootNode.has("offset") && !rootNode.get("offset").isNull()) {
+                    offset = "offset="+rootNode.get("offset").asText();
+                } else {
+                    offset = null; // No more pages
+                }
+
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } while (offset != null);
+
+        return new QueryResult(results);
+
+    }
+public void saveAllAirtable(
+        AirtableInterface table,
+        List<AirtableInterface> entities,
+        String bearer,
+        List<KdbAirColumnPersona> upsertFields,
+        List<KdbAirColumnPersona> checkFields) {
+
+    OkHttpClient client = new OkHttpClient();
+    String url = "https://api.airtable.com/v0/";
+    String tableUrl = url + table.getAppId() + "/" + table.getTableId();
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    List<Map<String, Object>> recordsList = new ArrayList<>();
+
+    for (AirtableInterface airtableInterface : entities) {
+
+        Map<String, Object> fieldsMap = new HashMap<>();
+
+        for (KdbAirColumnPersona field : upsertFields) {
+
+            AirColumnTemplate column = airtableInterface.getAllColumns()
+                    .stream()
+                    .filter(air -> Objects.equals(air.getRealName(), field.getRealName()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("field " + field.getRealName() + " not found"));
+
+            Object value = safeGetValue(column);
+
+            // ✅ Fix null handling
+            if ("null".equals(value)) {
+                value = null;
+            }
+
+            fieldsMap.put(column.getRealName(), value);
+        }
+
+        Map<String, Object> record = new HashMap<>();
+        record.put("fields", fieldsMap);
+
+        recordsList.add(record);
+    }
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("typecast", true);
+    body.put("records", recordsList);
+
+    if (!checkFields.isEmpty()) {
+        Map<String, Object> upsert = new HashMap<>();
+        upsert.put("fieldsToMergeOn",
+                checkFields.stream().map(KdbAirColumnPersona::getRealName).toList());
+
+        body.put("performUpsert", upsert);
+    }
+
+    try {
+        String json = mapper.writeValueAsString(body);
+
+        System.out.println(json + " records to be upserted");
+
+        RequestBody requestBody = RequestBody.create(
+                json, MediaType.parse("application/json"));
+
+        Request request = new Request.Builder()
+                .url(tableUrl)
+                .method(checkFields.isEmpty() ? "POST" : "PATCH", requestBody)
+                .header("Authorization", "Bearer " + bearer)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            System.out.println(response.body().string());
+        }
+
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
     public void saveAllAirtable(AirtableInterface table, List<AirtableInterface> entities, List<KdbAirColumnPersona> upsertFields, List<KdbAirColumnPersona> checkFields, List<String> checks) throws ParseException {
 //         Example of how the JSON structure for upsert and checks might look:
 //         {

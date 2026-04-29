@@ -78,6 +78,22 @@ public class ColumnDTO {
 
     }
 
+    public ColumnDTO(AiColumnJson column) {
+//        System.out.println("DTO COLUMN NAME: " + column.getName());
+        this.name = column.getName();
+        this.description = column.getDescription();
+        this.tags = column.getTags();
+        this.columnId = column.getColumnId();
+
+        this.defaultValue = column.getDefaultValue();
+
+        this.fieldType = column.getFieldType();
+
+
+
+
+    }
+
     public String getTableName() {
         return tableName;
     }

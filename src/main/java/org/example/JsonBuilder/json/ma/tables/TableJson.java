@@ -589,5 +589,9 @@ public class TableJson {
         return result;
     }
 
+    public Identifier getIdentifier() {
+        return identifier;
+    }
+
 
 }
