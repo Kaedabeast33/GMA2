@@ -6,6 +6,8 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jakarta.persistence.Id;
+import org.example.ClassOutputCreator.templates.KdbDataBaseProperties;
 import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.ClassOutputCreator.templates.MAConfigTemplate;
 import org.example.JsonBuilder.bank.ai_meta_cols.ColumnMeta;
@@ -22,9 +24,13 @@ import org.example.bank.KdbConverter.ClassTypeAdapter;
 import org.example.bank.KdbConverter.KdbConverter;
 import org.example.bank.commonValues.Identifier;
 import org.example.bank.commonValues.TableTypes;
+import org.example.inputs.DataSourceConfig;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
@@ -34,14 +40,20 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.example.JsonBuilder.bank.ai_meta_cols.ColumnMetaGroups.*;
 import static org.example.JsonBuilder.bank.ai_meta_cols.ColumnMetaRegistry.INPUTS_SCHEMA;
+import static org.example.bank.AppConfig.getAiSchema;
 
 @Component
 public class JsonBuilder {
+
+
+    @Autowired
+    DataSourceConfig dataSourceConfig;
 
 
 
@@ -135,13 +147,35 @@ public class JsonBuilder {
 
                 airMAJsons.add(maJson);
             } else {
-                // If it contains a default table value
+                // Build MaJsons from KdbTables and KdbAi tables
                 Identifier identifer = new Identifier(gma.getName(), db.getName(), null);
+                Identifier identifierAi = new Identifier(gma.getName(), getAiSchema(),null);
+                MAJson maJsonAi = new MAJson(identifierAi,dataSourceConfig.buildAiTemplate());
                 MAJson maJson = new MAJson(identifer, db);
-                maJson.setEntityManagerBeanName(db.getEntityManagerBeanName());
 
-                maJson.setTables(buildJsonOfTables(db.getJavaFolderPath(), identifer));
 
+                TableJson[] tables = buildJsonOfTables(db.getJavaFolderPath(), identifer);
+
+
+                // -----------------------------------------------------------------------------------
+
+
+                maJson.setTables(
+                        Arrays.stream(tables)
+                                .filter(t -> t.getIdentifier().getMaName() != null &&
+                                        t.getIdentifier().getMaName().equals(db.getName()))
+                                .toArray(TableJson[]::new)
+                );
+
+                maJsonAi.setTables(
+                        Arrays.stream(tables)
+                                .filter(t -> t.getIdentifier() != null &&
+                                        getAiSchema().equals(t.getIdentifier().getMaName()))
+                                .toArray(TableJson[]::new)
+                );
+
+
+                // ----------------------------------------------------
                 List<ProcedureJson> allProcedures = new ArrayList<>();
                 for (TableJson table : maJson.getTables()) {
                     Collections.addAll(allProcedures, table.getTableProcedures());
@@ -149,9 +183,19 @@ public class JsonBuilder {
 
                 maJson.setProcedures(allProcedures.toArray(new ProcedureJson[0]));
                 maJsons.add(maJson);
+
+
+                List<ProcedureJson> allProceduresAi = new ArrayList<>();
+                for (TableJson table : maJsonAi.getTables()) {
+                    Collections.addAll(allProceduresAi, table.getTableProcedures());
+                }
+                maJsonAi.setProcedures(allProceduresAi.toArray(new ProcedureJson[0]));
+                maJsons.add(maJsonAi);
+
+
             }
             // These are @KdbAi
-            Identifier identifier = new Identifier(gma.getName(), AppConfig.getAiSchema(),null);
+            Identifier identifier = new Identifier(gma.getName(), getAiSchema(),null);
             AiMAJson aiMAJson = new AiMAJson(identifier, db);
             aiMAJson.setTables(buildJsonOfAiTables(db.getJavaFolderPath(), identifier));
             aiMAJsons.add(aiMAJson);
@@ -192,7 +236,7 @@ public class JsonBuilder {
 
     public static List<AiTableComb> getAiClassesInPackage(String packageName) {
         Reflections reflections = new Reflections(packageName);
-        Set<Class<?>> aiClazzes = reflections.getTypesAnnotatedWith(KdbAiSchema.class).stream()
+        Set<Class<?>> aiClazzes = reflections.getTypesAnnotatedWith(KdbAi.class).stream()
                 .filter(clazz -> clazz.getPackageName().equals(packageName)) // <--- filter here
                 .collect(Collectors.toSet());
 
@@ -365,15 +409,15 @@ public class JsonBuilder {
 
             // MTM tables
             for (String table : aiTables.keySet()) {
-                System.out.println("checking for ai table match for "+String.format(table, aiSchemaData.name()));
+                System.out.println("checking for ai table match for "+String.format(table, aiSchemaData.schema()));
                 TableComb tableComb = new TableComb();
-                String tableName = String.format(table, aiSchemaData.name());
-                System.out.println(tableName);
+                String tableName = String.format(table, aiSchemaData.schema());
+
 
 
 
                 tableComb.setKdbTable(translateAiToTableSchema(aiSchemaData, aiTables.get(table), tableName));
-                setFieldsCombFromAi(tableComb, Arrays.asList(clazz.getDeclaredFields()));
+                setFieldsCombFromAi(tableComb, List.of());
                 Map<String, Set<Class<?>>> mapClazz = getClazzesByName(tableComb.getKdbTable().name(), clazzesRef);
                 Set<Class<?>> matching = mapClazz.get("matching");
                 for (Class<?> clazzMatched : matching) {
@@ -396,6 +440,9 @@ public class JsonBuilder {
     // NEXT JOB HERE make columns for raw from ai  then make the common raw fields then make the mtm tables fields
     public static void setFieldsCombFromAi(TableComb tableComb, List<Field> fields) {
 
+        System.out.println("HERE22");
+        System.out.println(tableComb.getKdbTable().name());
+        System.out.println(fields.stream().map(Field::getName).toList());
         for (Field field : fields) {
             FieldsComb fieldsComb = new FieldsComb();
 
@@ -428,34 +475,7 @@ public class JsonBuilder {
 
     }
 
-    Map<String, String> aiTables = Map.ofEntries(
-            Map.entry("%s_mtm_parse_groups_parse_input_groups",
-                    "Maps parse groups to parse input groups, defining which input groups belong to each parse group."),
 
-            Map.entry("%s_mtm_parse_input_groups_parse_input_types",
-                    "Maps parse input groups to parse input types, defining which types are included in each group."),
-
-            Map.entry("%s_mtm_parse_input_names_parse_input_values",
-                    "Maps input names to their corresponding values, representing the relationship between identifiers and their data values."),
-
-            Map.entry("%s_mtm_parse_input_types_parse_input_names",
-                    "Maps input types to input names, defining which names fall under each type classification."),
-
-            Map.entry("%s_parse_groups",
-                    "Defines high-level parsing groups used to organize and categorize input processing workflows."),
-
-            Map.entry("%s_parse_input_groups",
-                    "Defines groups of related input fields that are processed together during parsing."),
-
-            Map.entry("%s_parse_input_names",
-                    "Stores the individual input field names used in parsing operations."),
-
-            Map.entry("%s_parse_input_types",
-                    "Defines the types or categories of inputs, such as text, numeric, or structured data."),
-
-            Map.entry("%s_parse_input_values",
-                    "Stores the actual values associated with input names, representing parsed or raw data entries.")
-    );
 
     private static List<FieldsComb> getAiFieldCombs(String tableName) {
         // Add all keys into all of them and regular fields into inputs. primary keys will be apart of the filing system.
@@ -464,7 +484,7 @@ public class JsonBuilder {
 
 
 
-        if(Objects.equals(tableName, "raw_inputs")){
+        if(tableName.matches( ".*raw_inputs")){
 
             for(int i = 0; i<RAW_INPUTS_INDEX.getColumns().size(); i++){
 
@@ -480,7 +500,7 @@ public class JsonBuilder {
 
         }
 
-        if(Objects.equals(tableName, "inputs")){
+        if(tableName.matches( ".*inputs")&& !tableName.matches(".*raw.*")){
             for(int i = 0; i<INPUTS_INDEX.getColumns().size(); i++){
                 fieldsCombs.add(createFieldsComb(INPUTS_INDEX.getColumns().get(i), INPUTS_INDEX.getIndexByIndex(i), INPUTS_INDEX.getIndexName(),INPUTS_INDEX.getKeyGroupName(),false));
             }
@@ -495,7 +515,7 @@ public class JsonBuilder {
 
         }
 
-        if(Objects.equals(tableName, "raw")){
+        if(tableName.matches( ".*raw")){
             for(int i = 0; i<RAW_INDEX.getColumns().size(); i++){
                 fieldsCombs.add(createFieldsComb(RAW_INDEX.getColumns().get(i), RAW_INDEX.getIndexByIndex(i), RAW_INDEX.getIndexName(),RAW_INDEX.getKeyGroupName(),false));
             }
@@ -512,7 +532,7 @@ public class JsonBuilder {
 
         System.out.println(tableName+" here mtm");
 
-        if(tableName.matches(".*mtm_parse_groups_parse_parse_input_groups.*")){
+        if(tableName.matches(".*mtm_parse_groups_parse_input_groups")){
             for(int i = 0; i<MTM_PGIG.getColumns().size(); i++){
 
                 fieldsCombs.add(createFieldsComb(MTM_PGIG.getColumns().get(i), MTM_PGIG.getIndexByIndex(i), MTM_PGIG.getIndexName(),MTM_PGIG.getKeyGroupName(),false));
@@ -521,7 +541,7 @@ public class JsonBuilder {
 
         }
 
-        if(tableName.matches(".*mtm_parse_input_groups_parse_input_types.*")){
+        if(tableName.matches(".*mtm_parse_input_groups_parse_input_types")){
             for(int i = 0; i<MTM_IGIT.getColumns().size(); i++){
 
                 fieldsCombs.add(createFieldsComb(MTM_IGIT.getColumns().get(i), MTM_IGIT.getIndexByIndex(i), MTM_IGIT.getIndexName(),MTM_IGIT.getKeyGroupName(),false));
@@ -530,7 +550,7 @@ public class JsonBuilder {
 
         }
 
-        if(tableName.matches(".*mtm_parse_input_types_parse_input_names.*")){
+        if(tableName.matches(".*mtm_parse_input_types_parse_input_names")){
             for(int i = 0; i<MTM_ITIN.getColumns().size(); i++){
 
                 fieldsCombs.add(createFieldsComb(MTM_ITIN.getColumns().get(i), MTM_ITIN.getIndexByIndex(i), MTM_ITIN.getIndexName(),MTM_ITIN.getKeyGroupName(),false));
@@ -539,7 +559,7 @@ public class JsonBuilder {
 
         }
 
-        if(tableName.matches(".*mtm_parse_input_names_parse_input_values.*")){
+        if(tableName.matches(".*mtm_parse_input_names_parse_input_values")){
             for(int i = 0; i<MTM_INIV.getColumns().size(); i++){
 
                 fieldsCombs.add(createFieldsComb(MTM_INIV.getColumns().get(i), MTM_INIV.getIndexByIndex(i), MTM_INIV.getIndexName(),MTM_INIV.getKeyGroupName(),false));
@@ -547,7 +567,75 @@ public class JsonBuilder {
             fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
 
         }
+
+        if(tableName.matches(".*parse_groups") && !tableName.matches(".*mtm.*")){
+            for(int i = 0; i<PARSE_GROUPS.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(PARSE_GROUPS.getColumns().get(i), PARSE_GROUPS.getIndexByIndex(i), PARSE_GROUPS.getIndexName(),PARSE_GROUPS.getKeyGroupName(),false));
+            }
+
+            for(int i = 0; i<PARSE_GROUPS_IDX.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(PARSE_GROUPS_IDX.getColumns().get(i), PARSE_GROUPS_IDX.getIndexByIndex(i), PARSE_GROUPS_IDX.getIndexName(),PARSE_GROUPS_IDX.getKeyGroupName(),false));
+            }
+            fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
+
+        }
+        if(tableName.matches(".*input_groups")&& !tableName.matches(".*mtm.*")){
+            for(int i = 0; i<INPUT_GROUPS.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_GROUPS.getColumns().get(i), INPUT_GROUPS.getIndexByIndex(i), INPUT_GROUPS.getIndexName(),INPUT_GROUPS.getKeyGroupName(),false));
+            }
+
+            for(int i = 0; i<INPUT_GROUPS_IDX.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_GROUPS_IDX.getColumns().get(i), INPUT_GROUPS_IDX.getIndexByIndex(i), INPUT_GROUPS_IDX.getIndexName(),INPUT_GROUPS_IDX.getKeyGroupName(),false));
+            }
+            fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
+
+        }
+
+
+
+        if(tableName.matches(".*input_names")&& !tableName.matches(".*mtm.*")){
+            for(int i = 0; i<INPUT_NAMES.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_NAMES.getColumns().get(i), INPUT_NAMES.getIndexByIndex(i), INPUT_NAMES.getIndexName(),INPUT_NAMES.getKeyGroupName(),false));
+            }
+
+            for(int i = 0; i<INPUT_NAMES_IDX.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_NAMES_IDX.getColumns().get(i), INPUT_NAMES_IDX.getIndexByIndex(i), INPUT_NAMES_IDX.getIndexName(),INPUT_NAMES_IDX.getKeyGroupName(),false));
+            }
+            fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
+
+        }
+
+        if(tableName.matches(".*input_types")&& !tableName.matches(".*mtm.*")){
+            for(int i = 0; i<INPUT_TYPES.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_TYPES.getColumns().get(i), INPUT_TYPES.getIndexByIndex(i), INPUT_TYPES.getIndexName(),INPUT_TYPES.getKeyGroupName(),false));
+            }
+
+            for(int i = 0; i<INPUT_TYPES_IDX.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_TYPES_IDX.getColumns().get(i), INPUT_TYPES_IDX.getIndexByIndex(i), INPUT_TYPES_IDX.getIndexName(),INPUT_TYPES_IDX.getKeyGroupName(),false));
+            }
+            fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
+
+        }
+
+        if(tableName.matches(".*input_values")&& !tableName.matches(".*mtm.*")){
+            for(int i = 0; i<INPUT_VALUES.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_VALUES.getColumns().get(i), INPUT_VALUES.getIndexByIndex(i), INPUT_VALUES.getIndexName(),INPUT_VALUES.getKeyGroupName(),false));
+            }
+
+            for(int i = 0; i<INPUT_VALUES_IDX.getColumns().size(); i++){
+                fieldsCombs.add(createFieldsComb(INPUT_VALUES_IDX.getColumns().get(i), INPUT_VALUES_IDX.getIndexByIndex(i), INPUT_VALUES_IDX.getIndexName(),INPUT_VALUES_IDX.getKeyGroupName(),false));
+            }
+            fieldsCombs.add(createFieldsComb(RAW_INDEX.getPrimaryKey(), 0, null, null,true));
+
+        }
+
+
+
         return fieldsCombs;
+
+
+
+
 
 
 
@@ -564,6 +652,9 @@ public class JsonBuilder {
         KdbPrimaryKey primaryKey = null;
 
         FieldsComb fieldsComb = new FieldsComb();
+
+
+
 
 
 
@@ -616,7 +707,7 @@ public class JsonBuilder {
 
                 @Override
                 public String type() {
-                    return "";
+                    return columnMeta.getMysqlType()!=null? columnMeta.getMysqlType() : "default";
                 }
 
                 @Override
@@ -733,130 +824,7 @@ public class JsonBuilder {
 
 
 
-    private static FieldsComb createFieldsComb(Map.Entry<String, String> kv) {
-        KdbIndex kdbIndex = null;
-        String groupName = "upload_group_index";
 
-        FieldsComb fieldsComb = new FieldsComb();
-
-
-        if (Objects.equals(kv.getKey(), ColumnMeta.UPLOAD_GROUP.getColumn())) {
-            kdbIndex = createKDBIndex(RAW_INDEX.getIndexName(), 0);
-
-        } else if (Objects.equals(kv.getKey(), ColumnMeta.INPUT_GROUP.getColumn())) {
-            kdbIndex = createKDBIndex(groupName, 1);
-        } else if (Objects.equals(kv.getKey(), ColumnMeta.INPUT_TYPE.getColumn())) {
-            kdbIndex = createKDBIndex(groupName, 2);
-        } else if (Objects.equals(kv.getKey(), ColumnMeta.INPUT_NAME.getColumn())) {
-            kdbIndex = createKDBIndex(groupName, 3);
-        } else if (Objects.equals(kv.getKey(), ColumnMeta.INPUT_VALUE.getColumn())) {
-            kdbIndex = createKDBIndex(groupName, 4);
-        }
-
-
-            fieldsComb.setKdbIndex(kdbIndex);
-
-
-            KdbColumn kdbColumn = new KdbColumn() {
-                @Override
-                public Class<? extends java.lang.annotation.Annotation> annotationType() {
-                    return KdbColumn.class;
-                }
-
-                @Override
-                public String name() {
-                    return kv.getKey();
-                }
-
-                @Override
-                public String description() {
-                    return "";
-                }
-
-                @Override
-                public String[] tags() {
-                    return new String[0];
-                }
-
-                @Override
-                public String type() {
-                    return "";
-                }
-
-                @Override
-                public boolean isNullable() {
-                    return false;
-                }
-
-                @Override
-                public boolean isEditable() {
-                    return true;
-                }
-
-                @Override
-                public String[] columnGroupNames() {
-                    return new String[]{"upload_group"};
-                }
-
-                @Override
-                public boolean unique() {
-                    return false;
-                }
-
-                @Override
-                public boolean uniqueIdentifier() {
-                    return false;
-                }
-
-                @Override
-                public String[] uniqueIdenftifierGroupNames() {
-                    return new String[0];
-                }
-
-                @Override
-                public boolean isRequired() {
-                    return false;
-                }
-
-                @Override
-                public String defaultValue() {
-                    return null;
-                }
-
-                @Override
-                public int[] uniqueIdentifierGroupNames() {
-                    return new int[0];
-                }
-
-                @Override
-                public Class<?> converter() {
-                    return null;
-                }
-
-
-            };
-            fieldsComb.setKdbColumn(kdbColumn);
-            try {
-                fieldsComb.setFieldType(resolveClass(kv.getValue()));
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            KdbKey kdbKey = new KdbKey() {
-                @Override
-                public String[] groupName() {
-                    return new String[]{"upload_group"};
-                }
-
-                @Override
-                public Class<? extends java.lang.annotation.Annotation> annotationType() {
-                    return KdbKey.class;
-                }
-            };
-
-            fieldsComb.setKdbKey(kdbKey);
-            return fieldsComb;
-
-    }
 
 
     private static Class<?> resolveClass(String typeName) throws ClassNotFoundException {
@@ -887,6 +855,11 @@ public class JsonBuilder {
     }
     private static KdbTable translateAiToTable(KdbAi aiSchemaData,String description,String name) {
 
+        if(!Objects.equals(aiSchemaData.custom(), "")){
+            name = "c_"+aiSchemaData.custom()+ "_" + name;
+        }
+
+        String finalName = name;
         return new KdbTable() {
             @Override
             public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -895,7 +868,7 @@ public class JsonBuilder {
 
             @Override
             public String name() {
-                return name;
+                return finalName;
             }
 
             @Override
@@ -933,6 +906,12 @@ public class JsonBuilder {
     }
 
     private static KdbTable translateAiToTableSchema(KdbAi aiSchemaData,String description,String name) {
+        if(!Objects.equals(aiSchemaData.custom(), "")){
+            name = "c_"+aiSchemaData.custom()+ "_" + name;
+        }
+
+        String finalName = name;
+
 
         return new KdbTable() {
             @Override
@@ -942,7 +921,7 @@ public class JsonBuilder {
 
             @Override
             public String name() {
-                return name;
+                return finalName;
             }
 
             @Override
@@ -1144,11 +1123,13 @@ public class JsonBuilder {
         for (TableComb table : tableCombs) {
             System.out.println(table.getKdbTable().type());
             if(Objects.equals(table.getKdbTable().type(), "AI_SCHEMA")){
-                Identifier aiIdentifier = new Identifier(id.getGmaName(),"ai",table.getKdbTable().name());
+                Identifier aiIdentifier = new Identifier(id.getGmaName(),getAiSchema(),table.getKdbTable().name());
                 tableJson = new TableJson(aiIdentifier, table);
+                System.out.println("AI SCHEMA TABLE "+table.getKdbTable().name()+" with identifier "+aiIdentifier.getMaName());
             }else {
 
                 tableJson = new TableJson(id, table);
+                System.out.println("TABLE "+table.getKdbTable().name()+" with identifier "+id.getMaName());
             }
 
             list.add(tableJson);
@@ -1157,6 +1138,8 @@ public class JsonBuilder {
 
         return list.toArray(new TableJson[0]);
     }
+
+
 
 }
 

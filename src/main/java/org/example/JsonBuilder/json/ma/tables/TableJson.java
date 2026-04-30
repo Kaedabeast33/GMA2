@@ -117,7 +117,7 @@ public class TableJson {
                 // adding Unique Key field
                 try {
                     if (kdbKey != null) {
-                        columns[i].setUnique(true);
+
                         for (String key : kdbKey.groupName()) {
                             List<ColumnJson> value = groupKeyMap.computeIfAbsent(key, k -> new ArrayList<>());
                             value.add(columns[i]);

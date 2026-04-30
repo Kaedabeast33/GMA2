@@ -32,8 +32,9 @@ public class ValueTypes {
     public static final String MEDIUMTEXT = "MEDIUMTEXT";       // MEDIUMTEXT for very long text
     public static final String TIMESTAMP = "TIMESTAMP";       // MEDIUMTEXT for very long text
     public static final String TIME = "TIME(6)";                 // TIME for time values
-    public static final String VECTOR1536 = "VECTOR(1536)";         // VECTOR for vector embeddings
-    public static final String VECTOR768 = "VECTOR(768)";         // VECTOR for vector embeddings
+    public static final String VECTOR1536 = "TEXT";         // VECTOR for vector embeddings
+    public static final String VECTOR768 = "TEXT";         // VECTOR for vector embeddings
+    public static final String VECTOR = "TEXT";         // TEXT for vector embeddings as JSON
 
 
 
@@ -53,6 +54,7 @@ public class ValueTypes {
         TYPE_MAP.put(LocalDateTime.class, ValueTypes.DATETIME);
         TYPE_MAP.put(Timestamp.class, ValueTypes.TIMESTAMP);
         TYPE_MAP.put(BigDecimal.class, ValueTypes.DECIMAL_23_0);
+        TYPE_MAP.put(Double[].class, ValueTypes.VECTOR1536); // Assuming vector embeddings are stored as JSON text
 
 
     }
@@ -71,6 +73,8 @@ public class ValueTypes {
         FIELD_TYPE_MAP.put("LocalDateTime", "java.time.LocalDateTime.class");
         FIELD_TYPE_MAP.put("Timestamp", "java.sql.Timestamp.class");
         FIELD_TYPE_MAP.put("BigDecimal", "java.math.BigDecimal.class");
+        FIELD_TYPE_MAP.put("Double[]", "java.lang.Double[].class");
+
     }
 
 

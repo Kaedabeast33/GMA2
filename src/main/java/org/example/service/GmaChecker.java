@@ -8,6 +8,7 @@ import org.example.JsonBuilder.json.ma.tables.UniqueKeyJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnDTO;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.IndexJson;
+import org.example.bank.commonValues.DefaultTypes;
 import org.example.bank.commonValues.TableTypes;
 
 import java.math.BigDecimal;
@@ -618,7 +619,7 @@ public class GmaChecker {
                 Map<String, List<UniqueKeyCheck>> uniqueKeyCheckMap = new HashMap<>();
 
                 if (table != null) {
-                    Boolean isReport;
+                    boolean isReport;
                     isReport = table.getTableType().equalsIgnoreCase(TableTypes.REPORT);
                     // Table exists in IDE
                     if (tableDb == null) {
@@ -962,18 +963,37 @@ public class GmaChecker {
                 if (col.getType() == null) {
                     throw new RuntimeException("Column type is null for column: " + col.getName() + " in IDE.");
                 }
-                if (!Objects.equals(
-                        col.getType().replaceAll("\\(.*?\\)", ""),
-                        colDb.getType().replaceAll("\\(.*?\\)", "").replaceAll("\\s.*", "")
-                )) {
-                    ColCheck colCheck = new ColCheck(col.getName(), col.getType());
-                    colCheck.setType("type");
-                    colCheck.setDifference("IDE: " + col.getType() + ", DB: " + colDb.getType());
-                    colCheck.setColumn(col);
-                    colCheckList.add(colCheck);
+
+                if(isReport) {
+
+                    if (!areReportTypesEquivalent(
+                            normalizeType(col.getType()),
+                            normalizeType(colDb.getType())
+                    ))
+                    {
+
+                        // Allowed equivalences
+
+
+                        ColCheck colCheck = new ColCheck(col.getName(), col.getType());
+                        colCheck.setType("type");
+                        colCheck.setDifference("IDE: " + col.getType() + ", DB: " + colDb.getType());
+                        colCheck.setColumn(col);
+                        colCheckList.add(colCheck);
+                    }
                 }
+
                 // Compare nullable, unique, PK
                 if(!isReport) {
+                    if (!Objects.equals(normalizeType(col.getType()) ,
+                            normalizeType(colDb.getType())))  {
+
+                        ColCheck colCheck = new ColCheck(col.getName(), col.getType());
+                        colCheck.setType("type");
+                        colCheck.setDifference("IDE: " + col.getType() + ", DB: " + colDb.getType());
+                        colCheck.setColumn(col);
+                        colCheckList.add(colCheck);
+                    }
                     //if it is a report skip these checks
                     if (col.isNullable() != colDb.isNullable()) {
                         ColCheck colCheck = new ColCheck(col.getName(), col.getType());
@@ -1034,6 +1054,26 @@ public class GmaChecker {
         }
 
         return columnCheckMap;
+    }
+
+    private static boolean areReportTypesEquivalent(String ideType, String dbType) {
+
+        // Direct match
+        if (Objects.equals(ideType, dbType)) return true;
+
+        // Allowed equivalences
+        return (ideType.equals("localdatetime") && dbType.equals("timestamp")) ||
+                (ideType.equals("timestamp") && dbType.equals("localdatetime"));
+    }
+
+    private static String normalizeType(String type) {
+        if (type == null) return "";
+
+        return type
+                .toLowerCase()
+                .replaceAll("\\(.*?\\)", "")   // remove (255), (10,2), etc
+                .replaceAll("\\s.*", "")       // remove extra stuff like "unsigned"
+                .trim();
     }
 
 

@@ -34,7 +34,7 @@ public class AppConfig {
     }
 
     public static String getGmaName(){
-        return "dorm";
+        return "vyta";
     }
 
     public static String getPythonServerUrl(){

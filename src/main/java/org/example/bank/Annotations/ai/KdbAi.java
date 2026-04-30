@@ -5,12 +5,15 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KdbAi {
-    String name();
+    String schema();
+    String custom() default "";
 
     String[] tags() default {};
 
     String description();
     String [] uploadTypes() default {"inputs","raw_inputs","raw"};
+
+
     String path() default "";
 
 

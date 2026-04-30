@@ -4,19 +4,34 @@ import java.util.List;
 
 public enum ColumnMetaGroups {
 
+    PARSE_GROUPS_IDX("primary_idx", new int[]{0}, "primary_key", List.of(ColumnMeta.UPLOAD_GROUP)),
+    PARSE_GROUPS(null,null, null, List.of(ColumnMeta.DESCRIPTION,ColumnMeta.IS_ACTIVE)),
+
+    INPUT_GROUPS_IDX("primary_idx", new int[]{0}, "primary_key", List.of(ColumnMeta.INPUT_GROUP)),
+    INPUT_GROUPS(null,null, null, List.of(ColumnMeta.DESCRIPTION,ColumnMeta.IS_ACTIVE)),
+
+    INPUT_TYPES_IDX("primary_idx", new int[]{0}, "primary_key", List.of(ColumnMeta.INPUT_TYPE)),
+    INPUT_TYPES(null,null, null, List.of(ColumnMeta.DESCRIPTION,ColumnMeta.IS_ACTIVE)),
+
+    INPUT_NAMES_IDX("primary_idx", new int[]{0}, "primary_key", List.of(ColumnMeta.INPUT_NAME)),
+    INPUT_NAMES(null,null, null, List.of(ColumnMeta.DESCRIPTION,ColumnMeta.IS_ACTIVE)),
+
+    INPUT_VALUES_IDX("primary_idx", new int[]{0}, "primary_key", List.of(ColumnMeta.INPUT_VALUE)),
+    INPUT_VALUES(null,null, null, List.of(ColumnMeta.DESCRIPTION,ColumnMeta.IS_ACTIVE)),
+
     MTM_PGIG("parse_index", null, "pgig", List.of(ColumnMeta.PARSE_GROUP_ID, ColumnMeta.INPUT_GROUP_ID)),
     MTM_IGIT("parse_index", null, "igit", List.of(ColumnMeta.INPUT_GROUP_ID, ColumnMeta.INPUT_TYPE_ID)),
     MTM_ITIN("parse_index", null, "itin", List.of(ColumnMeta.INPUT_TYPE_ID, ColumnMeta.INPUT_NAME_ID)),
     MTM_INIV("parse_index", null, "iniv", List.of(ColumnMeta.INPUT_NAME_ID, ColumnMeta.INPUT_VALUE_ID)),
 
-    INPUTS_INDEX("parse_groups", new int[]{0,1,2,3,4}, null, List.of(ColumnMeta.UPLOAD_GROUP, ColumnMeta.INPUT_GROUP,ColumnMeta.INPUT_TYPE,ColumnMeta.INPUT_NAME,ColumnMeta.INPUT_TYPE)),
+    INPUTS_INDEX("parse_groups", new int[]{0,1,2,3,4}, null, List.of(ColumnMeta.UPLOAD_GROUP, ColumnMeta.INPUT_GROUP,ColumnMeta.INPUT_TYPE,ColumnMeta.INPUT_NAME,ColumnMeta.INPUT_VALUE)),
     INPUTS(null,null, null, List.of(
             ColumnMeta.DB_EMBEDDING,
             ColumnMeta.DB_UPDATE_DATE,
             ColumnMeta.DB_INSERT_DATE,
             ColumnMeta.VALUE,
-            ColumnMeta.INPUT_JSON,
-            ColumnMeta.RAW_ID)),
+            ColumnMeta.INPUT_JSON
+            )),
 
     RAW(null, null, null, List.of(ColumnMeta.DB_EMBEDDING,
             ColumnMeta.DB_UPDATE_DATE,
@@ -31,11 +46,11 @@ public enum ColumnMetaGroups {
             ColumnMeta.FILE_PATH,
 
             ColumnMeta.ORIGINAL_NAME,
-            ColumnMeta.UPLOAD_GROUP,
+
             ColumnMeta.PROCESSED_AT,
-            ColumnMeta.STORED_NAME,
-            ColumnMeta.ORIGINAL_NAME,
-            ColumnMeta.PROCESSED_AT,
+
+
+
 
             ColumnMeta.RAW_INPUT_JSON)),
 
@@ -58,7 +73,7 @@ public enum ColumnMetaGroups {
             ColumnMeta.STORED_NAME
     )),
 
-    RAW_INPUTS("parse_index", null, "inputs", List.of(
+    RAW_INPUTS(null, null, null, List.of(
             ColumnMeta.DB_EMBEDDING,
             ColumnMeta.DB_UPDATE_DATE,
             ColumnMeta.DB_INSERT_DATE,
@@ -76,7 +91,7 @@ public enum ColumnMetaGroups {
 
     )),
 
-    RAW_INPUTS_RAW_ID("parse_index", null, "inputs", List.of(
+    RAW_INPUTS_RAW_ID("raw_id", null, "inputs", List.of(
                        ColumnMeta.RAW_ID
                ));
 

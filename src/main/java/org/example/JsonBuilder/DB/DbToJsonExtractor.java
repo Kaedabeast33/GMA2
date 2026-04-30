@@ -17,14 +17,7 @@ import java.util.*;
 
 public class DbToJsonExtractor {
 
-    /**
-     * Extracts tables and columns from the given database.
-     *
-     * @param conn         JDBC connection
-     * @param databaseName database/catalog to extract
-     * @return list of TableJson objects
-     * @throws SQLException if DB access fails
-     */
+
     public static List<TableJson> extractTables(Connection conn, String databaseName) throws SQLException, InvocationTargetException, IllegalAccessException {
 //        System.out.println("Starting table extraction for database: " + databaseName);
         DatabaseMetaData metaData = conn.getMetaData();
@@ -144,17 +137,54 @@ public class DbToJsonExtractor {
         return cols.toArray(new ColumnJson[0]);
     }
 
-    private static Set<String> getUniqueColumns(DatabaseMetaData metaData, String databaseName, String tableName) throws SQLException {
-        Set<String> uniqueColumns = new HashSet<>();
-        ResultSet indexRs = metaData.getIndexInfo(databaseName, null, tableName, false, false);
-        while (indexRs.next()) {
-            boolean nonUnique = indexRs.getBoolean("NON_UNIQUE");
-            String columnName = indexRs.getString("COLUMN_NAME");
-            if (!nonUnique && columnName != null) {
-                uniqueColumns.add(columnName);
+    private static Set<String> getUniqueColumns(DatabaseMetaData metaData,
+                                                String databaseName,
+                                                String tableName) throws SQLException {
+
+        Map<String, List<String>> indexToColumns = new HashMap<>();
+
+        ResultSet rs = metaData.getIndexInfo(databaseName, null, tableName, false, false);
+
+        while (rs.next()) {
+            boolean nonUnique = rs.getBoolean("NON_UNIQUE");
+            String indexName = rs.getString("INDEX_NAME");
+            String columnName = rs.getString("COLUMN_NAME");
+
+            // Skip statistics rows just to be safe
+            short type = rs.getShort("TYPE");
+            if (type == DatabaseMetaData.tableIndexStatistic) continue;
+
+            if (!nonUnique && indexName != null && columnName != null) {
+                indexToColumns
+                        .computeIfAbsent(indexName, k -> new ArrayList<>())
+                        .add(columnName);
             }
         }
-        return uniqueColumns;
+
+        // Step 1: Get primary key columns
+        Set<String> primaryKeys = new HashSet<>();
+        ResultSet pkRs = metaData.getPrimaryKeys(databaseName, null, tableName);
+
+        while (pkRs.next()) {
+            primaryKeys.add(pkRs.getString("COLUMN_NAME"));
+        }
+
+        // Step 2: Only keep single-column unique indexes AND exclude PKs
+        Set<String> singularUniqueColumns = new HashSet<>();
+
+        for (Map.Entry<String, List<String>> entry : indexToColumns.entrySet()) {
+            List<String> cols = entry.getValue();
+
+            if (cols.size() == 1) {
+                String col = cols.get(0);
+
+                if (!primaryKeys.contains(col)) {
+                    singularUniqueColumns.add(col);
+                }
+            }
+        }
+
+        return singularUniqueColumns;
     }
 
 

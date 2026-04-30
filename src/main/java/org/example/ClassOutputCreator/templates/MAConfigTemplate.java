@@ -1,7 +1,12 @@
 package org.example.ClassOutputCreator.templates;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+
 import java.sql.SQLException;
 import java.util.Map;
+
+import static org.example.bank.AppConfig.getAiSchema;
 
 public class MAConfigTemplate {
     String name;
@@ -131,4 +136,7 @@ public class MAConfigTemplate {
     public String getAirtableApp() {
         return airtableApp;
     }
+
+
+
 }
