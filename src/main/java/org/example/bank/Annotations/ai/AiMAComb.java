@@ -7,14 +7,22 @@ import org.example.bank.Annotations.MethodsComb;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AiTableComb {
+public class AiMAComb {
 
 
-
+    KdbAi kdbAi;
     private List<AiFieldsComb> fieldsComb = new ArrayList<>();
     String name;
     String description;
     String[] tags;
+
+    public KdbAi getKdbAi() {
+        return kdbAi;
+    }
+
+    public void setKdbAi(KdbAi kdbAi) {
+        this.kdbAi = kdbAi;
+    }
 
     public String getName() {
         return name;

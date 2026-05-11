@@ -1,9 +1,6 @@
 package org.example.bank.db;
 
-import org.example.bank.ai.PromptForJsonSchema;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import org.example.ai.PromptForJsonSchema;
 
 public class InputJson {
 

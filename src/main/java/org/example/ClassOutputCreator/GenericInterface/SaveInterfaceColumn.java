@@ -1,7 +1,8 @@
 package org.example.ClassOutputCreator.GenericInterface;
 
-public interface GenericColumnInterface {
+public interface SaveInterfaceColumn {
     String getName();
+    Boolean isPrimaryKey();
 
 
 }
