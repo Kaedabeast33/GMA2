@@ -1,4 +1,4 @@
-package org.example.bank.ai;
+package org.example.ai;
 
 import com.google.gson.annotations.SerializedName;
 

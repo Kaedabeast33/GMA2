@@ -1,10 +1,11 @@
 package org.example.bank.db;
 
-import org.example.ai.PromptForJsonSchema;
+import org.example.ai.AiRagSchemaJson;
+
 
 public class InputJson {
 
-    private Integer clientId;
+    private String clientId;
     public String reportedAt;
     private String uploadGroup;
     private String uploadGroupDescription;
@@ -14,7 +15,9 @@ public class InputJson {
     private String typeNameDescription;
     private String inputName;
     private String inputNameDescription;
-    private PromptForJsonSchema.Value value;
+    private String valueName;
+    private String valueDescription;
+    private AiRagSchemaJson.ValueWrapper value;
     private final String uuid = java.util.UUID.randomUUID().toString();
 
     public InputJson() {}
@@ -24,43 +27,40 @@ public class InputJson {
         return uuid;
     }
 
-    public InputJson(Integer clientId, String reportedAt, String uploadGroup, String uploadGroupDescription,
-                     String groupName, String groupNameDescription, String typeName, String typeNameDescription,
-                     String inputName, String inputNameDescription) {
-        this.clientId = clientId;
-        this.reportedAt = reportedAt;
-        this.uploadGroup = uploadGroup;
-        this.uploadGroupDescription = uploadGroupDescription;
-        this.groupName = groupName;
-        this.groupNameDescription = groupNameDescription;
-        this.typeName = typeName;
-        this.typeNameDescription = typeNameDescription;
-        this.inputName = inputName;
-        this.inputNameDescription = inputNameDescription;
+    public String getValueName() {
+        return valueName;
     }
 
-    public PromptForJsonSchema.Value getValue() {
+    public void setValueName(String valueName) {
+        this.valueName = valueName;
+    }
+
+    public String getValueDescription() {
+        return valueDescription;
+    }
+
+    public void setValueDescription(String valueDescription) {
+        this.valueDescription = valueDescription;
+    }
+
+    public AiRagSchemaJson.ValueWrapper getValue() {
         return value;
     }
 
-    public void setValue(PromptForJsonSchema.Value value) {
+    public void setValue(AiRagSchemaJson.ValueWrapper value) {
         this.value = value;
     }
 
-
-
-    // Getters and Setters
-    public Integer getClientId() {
+    public String getClientId() {
         return clientId;
     }
 
-    public void setClientId(Integer clientId) {
+    public void setClientId(String clientId) {
         this.clientId = clientId;
     }
 
 
-
-    // Accepts multiple common datetime string formats and converts to LocalDateTime
+// Accepts multiple common datetime string formats and converts to LocalDateTime
 //    public void setReportedAt(String reportedAt) {
 //        if (reportedAt == null) {
 //            this.reportedAt = null;
@@ -189,4 +189,9 @@ public class InputJson {
                 ", inputNameDescription='" + inputNameDescription + '\'' +
                 '}';
     }
+
+    public void setInputValueDescription(String desc) {
+        this.inputNameDescription = desc;
+    }
 }
+

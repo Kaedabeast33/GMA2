@@ -1,7 +1,7 @@
-package org.example.ClassOutputCreator;
+package org.example.ClassOutputCreator.airtable;
+
 
 import org.example.JsonBuilder.json.ma.tables.columns.AirColumnJson;
-import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.example.ClassOutputCreator.ClassCreator.*;
-import static org.example.ClassOutputCreator.GMAClassCreator.generatePackageDeclaration;
+
+
+import static org.example.ClassOutputCreator.GMAClassCreator.*;
 import static org.example.bank.commonValues.ValueTypes.FIELD_TYPE_MAP;
 
 public class AirColumnClassCreator {

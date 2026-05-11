@@ -1,19 +1,28 @@
 package org.example.JsonBuilder.json.ma.tables;
 
+import com.google.gson.Gson;
 import jakarta.persistence.Id;
+import org.example.ClassOutputCreator.GenericInterface.SaveInterfaceColumn;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnGroupJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.IndexJson;
 import org.example.JsonBuilder.json.ma.tables.columns.UniqueColumnGroupJson;
 import org.example.JsonBuilder.json.ma.tables.dependencies.DependencyJson;
 import org.example.bank.Annotations.*;
+import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.JsonBuilderRef.IndexMapObject;
+import org.example.bank.OutputClassBank.SaveInterface;
 import org.example.bank.commonValues.Identifier;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
 import java.util.*;
 
-public class TableJson {
+import static org.example.bank.OutputClassBank.KdbColumnWrapper.safeGetValue;
+
+public class TableJson implements SaveInterface {
+
+//    @TODO  -> make it a saveinterface
     String name;
     String description;
     String[] tags;
@@ -35,6 +44,65 @@ public class TableJson {
     TriggerJson[] triggers;
     CustomContraintJson[] customConstraints;
     UniqueKeyJson[] uniqueKeys;
+
+//    public void setColEntityValue(String colName,EntityValue<?> value) throws Exception {
+//        boolean found = false;
+//        for(ColumnJson column : columns) {
+//            if(column.getName().equals(colName)) {
+//                column.setEntityValue(value);
+//                found = true;
+//                break;
+//            }
+//        }
+//        if(!found) {
+//            throw new Exception("Column with name " + colName + " not found in table " + name);
+//        }
+//
+//    }
+
+    public void setColEntityValue(String colName,Object value) throws Exception {
+//        System.out.println("Setting value for column: " + colName + " in table: " + name);
+        boolean found = false;
+        for(ColumnJson column : columns) {
+//            System.out.println("Checking column: " + column.getName());
+            if(column.getName().equals(colName)) {
+                column.setEntityValue(value);
+                found = true;
+                break;
+            }
+        }
+        if(!found) {
+            throw new Exception("Column with name " + colName + " not found in table " + name);
+        }
+
+    }
+    public ColumnJson findCol(String colName) throws Exception {
+
+
+        for(ColumnJson column : columns) {
+            if(column.getName().equals(colName)) {
+                return column;
+            }
+        }
+        throw new Exception("Column with name " + colName + " not found in table " + name);
+
+
+    }
+
+    public List<ColumnJson> findColsByGroupName(String groupName) {
+        List<ColumnJson> list = new ArrayList<>();
+
+        for (ColumnJson column : columns) {
+            boolean match = Arrays.stream(column.getColumnGroups())
+                    .anyMatch(g -> groupName.equals(g.getName()));
+
+            if (match) {
+                list.add(column);
+            }
+        }
+
+        return list;
+    }
 
 
 
@@ -439,6 +507,7 @@ public class TableJson {
         return name;
     }
 
+
     public QueryJson[] getTableQueries() {
         return tableQueries;
     }
@@ -498,6 +567,35 @@ public class TableJson {
 
     public ColumnJson[] getColumns() {
         return columns;
+    }
+
+    public List<ColumnJson> getColumnsList() {
+        return Arrays.asList(columns);
+    }
+
+    public List<IndexJson> getIndexesList() {
+        return Arrays.asList(indexes);
+    }
+
+    public List<ColumnGroupJson> getColumnGroupsList() {
+        return Arrays.asList(columnGroups);
+    }
+
+    public ColumnJson getColumnByName(String name) throws Exception {
+        Gson gson = new Gson();
+        ColumnJson col = Arrays.stream(getColumns()).filter(c-> c.getName().equals(name)).findFirst().orElse(null);
+        if(col ==null) throw new Exception("Column with name " + name + " not found in table " + this.name);
+        return  gson.fromJson(gson.toJson(col),ColumnJson.class);
+    }
+
+    public List<ColumnJson> getColumnsByGroupName(String groupName) {
+        List<ColumnJson> list = new ArrayList<>();
+        for (ColumnJson col : columns) {
+            if (Arrays.stream(col.getColumnGroups()).filter(c-> Objects.equals(c.getName(), groupName)).findFirst().orElse(null) != null) {
+                list.add(col);
+            }
+        }
+        return list;
     }
 
     public UniqueKeyJson[] getUniqueKeys() {
@@ -594,4 +692,73 @@ public class TableJson {
     }
 
 
+    @Override
+    public String getValues(String arg) throws ParseException, ClassNotFoundException {
+        StringBuilder sb = new StringBuilder("(");
+
+        List<String> values = new ArrayList<>();
+        List<String> formattedValues = new ArrayList<>();
+
+        for(ColumnJson col: columns) {
+            values.add(safeGetValue(col));
+            formattedValues.add("%s");
+        }
+        values.add(arg);
+        formattedValues.add("%s");
+        sb.append(String.join(",", formattedValues));
+        sb.append(")\n,");
+
+
+        String implement = sb.toString().formatted(values.toArray());
+        System.out.println("Generated values string for table " + name + ": " + implement);
+        return implement;
+    }
+
+
+
+    @Override
+    public String getValues() throws ParseException, ClassNotFoundException {
+        StringBuilder sb = new StringBuilder("(");
+
+        List<String> values = new ArrayList<>();
+        List<String> formattedValues = new ArrayList<>();
+
+        for(ColumnJson col: columns) {
+            values.add(safeGetValue(col));
+            formattedValues.add("%s");
+        }
+
+
+        sb.append(String.join(",", formattedValues));
+        sb.append(")\n,");
+
+
+        String implement = sb.toString().formatted(values.toArray());
+        System.out.println("Generated values string for table " + name + ": " + implement);
+        return implement;
+
+    }
+
+    @Override
+    public String getMaName() {
+        return identifier.getMaName();
+    }
+
+    @Override
+    public List<String> getColumnsString() {
+        return Arrays.stream(this.getColumns()).map(ColumnJson::getName).toList();
+    }
+
+    @Override
+    public String getTableName() {
+        return name;
+    }
+
+    @Override
+    public String getUpsertName() {
+        return String.format("gma_resources.%s_%s_insert",  this.getMaName(), this.getName());
+    }
 }
+
+
+

@@ -1,45 +1,25 @@
-package org.example.bank.ai;
+package org.example.ai;
 
 import com.google.gson.annotations.SerializedName;
+import org.example.bank.commonMethods.MultiFormatLocalDateTimeFormatter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class AiRagSchemaJson {
+
     @SerializedName("upload_name")
     private String uploadName;
 
-    @SerializedName("reported_at")
-    private String reportedAt;
+    @SerializedName("upload_description")
+    private String uploadDescription;
 
+    @SerializedName("timestamp")
+    private String timestamp;
 
-    private List<PromptForJsonSchema.Group> groups;
+    private List<Group> groups;
 
     // ---------- Getters / Setters ----------
-
-    public String getReportedAt() {
-        return reportedAt;
-    }
-
-    public LocalDateTime getReportAtLocalDateTime() {
-        LocalDateTime l = MultiFormatLocalDateTimeFormatter.parseDateAndTime(reportedAt);
-        // Convert the reportedAt string to LocalDateTime
-        return l == null ? LocalDateTime.now() : l;
-    }
-
-
-    public void setReportedAt(String reportedAt) {
-        this.reportedAt = reportedAt;
-    }
-
-
-//    public String getDescription() {
-//        return description;
-//    }
-//
-//    public void setDescription(String description) {
-//        this.description = description;
-//    }
 
     public String getUploadName() {
         return uploadName;
@@ -49,35 +29,56 @@ public class AiRagSchemaJson {
         this.uploadName = uploadName;
     }
 
-    public List<PromptForJsonSchema.Group> getGroups() {
+    public String getUploadDescription() {
+        return uploadDescription;
+    }
+
+    public void setUploadDescription(String uploadDescription) {
+        this.uploadDescription = uploadDescription;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public LocalDateTime getTimestampAsLocalDateTime() {
+        LocalDateTime l = MultiFormatLocalDateTimeFormatter.parseDateAndTime(timestamp);
+        return l == null ? LocalDateTime.now() : l;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public List<Group> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<PromptForJsonSchema.Group> groups) {
+    public void setGroups(List<Group> groups) {
         this.groups = groups;
     }
 
     @Override
     public String toString() {
-        return "UploadGroupJson{" +
-                "uploadName=" + uploadName +
+        return "AiRagSchemaJson{" +
+                "uploadName='" + uploadName + '\'' +
+                ", uploadDescription='" + uploadDescription + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 ", groups=" + groups +
                 '}';
     }
-
 
     // ============================================================
     // Nested Classes
     // ============================================================
 
     public static class Group {
-
         @SerializedName("group_name")
         private String groupName;
 
-//        private String description;
+        private String description;
 
-        private List<PromptForJsonSchema.TypeEntry> types;
+        private List<TypeEntry> types;
 
         public String getGroupName() {
             return groupName;
@@ -87,43 +88,39 @@ public class AiRagSchemaJson {
             this.groupName = groupName;
         }
 
-//        public String getDescription() {
-//            return description;
-//        }
+        public String getDescription() {
+            return description;
+        }
 
-//        public void setDescription(String description) {
-//            this.description = description;
-//        }
+        public void setDescription(String description) {
+            this.description = description;
+        }
 
-        public List<PromptForJsonSchema.TypeEntry> getTypes() {
+        public List<TypeEntry> getTypes() {
             return types;
         }
 
-        public void setTypes(List<PromptForJsonSchema.TypeEntry> types) {
+        public void setTypes(List<TypeEntry> types) {
             this.types = types;
         }
 
         @Override
         public String toString() {
             return "Group{" +
-                    "groupName=" + groupName +
-//                    ", description=" + description +
+                    "groupName='" + groupName + '\'' +
+                    ", description='" + description + '\'' +
                     ", types=" + types +
                     '}';
         }
-
     }
 
-    // ------------------------------------------------------------
-
     public static class TypeEntry {
-
         @SerializedName("type_name")
         private String typeName;
 
-//        private String description;
+        private String description;
 
-        private List<PromptForJsonSchema.NameEntry> names;
+        private List<NameEntry> names;
 
         public String getTypeName() {
             return typeName;
@@ -133,60 +130,39 @@ public class AiRagSchemaJson {
             this.typeName = typeName;
         }
 
-//        public String getDescription() {
-//            return description;
-//        }
+        public String getDescription() {
+            return description;
+        }
 
-//        public void setDescription(String description) {
-//            this.description = description;
-//        }
+        public void setDescription(String description) {
+            this.description = description;
+        }
 
-        public List<PromptForJsonSchema.NameEntry> getNames() {
+        public List<NameEntry> getNames() {
             return names;
         }
 
-        public void setNames(List<PromptForJsonSchema.NameEntry> names) {
+        public void setNames(List<NameEntry> names) {
             this.names = names;
         }
 
         @Override
         public String toString() {
             return "TypeEntry{" +
-                    "typeName=" + typeName +
-//                    ", description=" + description +
+                    "typeName='" + typeName + '\'' +
+                    ", description='" + description + '\'' +
                     ", names=" + names +
                     '}';
         }
-
     }
 
-    // ------------------------------------------------------------
-
     public static class NameEntry {
-
         @SerializedName("input_name")
         private String inputName;
-        //        private String description;
-        private List<PromptForJsonSchema.Value> values;
 
-//        private List<ValueWrapper> values;
+        private String description;
 
-
-        public List<PromptForJsonSchema.Value> getValues() {
-            return values;
-        }
-
-        public void setValues(List<PromptForJsonSchema.Value> values) {
-            this.values = values;
-        }
-
-//        public String getDescription() {
-//            return description;
-//        }
-
-//        public void setDescription(String description) {
-//            this.description = description;
-//        }
+        private List<ValueWrapper> values;
 
         public String getInputName() {
             return inputName;
@@ -196,44 +172,45 @@ public class AiRagSchemaJson {
             this.inputName = inputName;
         }
 
-        public NameEntry() {
-            this.values = List.of(new PromptForJsonSchema.Value());
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public List<ValueWrapper> getValues() {
+            return values;
+        }
+
+        public void setValues(List<ValueWrapper> values) {
+            this.values = values;
         }
 
         @Override
         public String toString() {
             return "NameEntry{" +
-                    "inputName=" + inputName +
+                    "inputName='" + inputName + '\'' +
+                    ", description='" + description + '\'' +
+                    ", values=" + values +
                     '}';
         }
-
-//
-//        public List<ValueWrapper> getValues() {
-//            return values;
-//        }
-//
-//        public void setValues(List<ValueWrapper> values) {
-//            this.values = values;
-//        }
     }
 
-    // ------------------------------------------------------------
-
-    public static class Value {
-
-        private PromptForJsonSchema.MeasurementValue value;
-
+    public static class ValueWrapper {
+        @SerializedName("value")
+        private MeasurementValue value;
 
         private String notes;
 
-        public PromptForJsonSchema.MeasurementValue getValue() {
+        public MeasurementValue getValue() {
             return value;
         }
 
-        public void setValue(PromptForJsonSchema.MeasurementValue value) {
+        public void setValue(MeasurementValue value) {
             this.value = value;
         }
-
 
         public String getNotes() {
             return notes;
@@ -243,25 +220,16 @@ public class AiRagSchemaJson {
             this.notes = notes;
         }
 
-        public Value() {
-            this.value = new PromptForJsonSchema.MeasurementValue();
-        }
-
         @Override
         public String toString() {
             return "ValueWrapper{" +
                     "value=" + value +
-
-                    ", notes=" + notes +
+                    ", notes='" + notes + '\'' +
                     '}';
         }
-
     }
 
-    // ------------------------------------------------------------
-
     public static class MeasurementValue {
-
         private String name;
         private String description;
 
@@ -281,19 +249,21 @@ public class AiRagSchemaJson {
         @SerializedName("measurement_type")
         private String measurementType;
 
-
         private String date;
         private String time;
         private String frequency;
 
-        private String source;
+        private Source source;
 
-        public String getSource() {
-            return source;
+        private Double confidence;
+        private String notes;
+
+        public String getName() {
+            return name;
         }
 
-        public void setSource(String source) {
-            this.source = source;
+        public void setName(String name) {
+            this.name = name;
         }
 
         public String getDescription() {
@@ -302,14 +272,6 @@ public class AiRagSchemaJson {
 
         public void setDescription(String description) {
             this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
         }
 
         public Object getValue() {
@@ -376,6 +338,30 @@ public class AiRagSchemaJson {
             this.frequency = frequency;
         }
 
+        public Source getSource() {
+            return source;
+        }
+
+        public void setSource(Source source) {
+            this.source = source;
+        }
+
+        public Double getConfidence() {
+            return confidence;
+        }
+
+        public void setConfidence(Double confidence) {
+            this.confidence = confidence;
+        }
+
+        public String getNotes() {
+            return notes;
+        }
+
+        public void setNotes(String notes) {
+            this.notes = notes;
+        }
+
         @Override
         public String toString() {
             return "MeasurementValue{" +
@@ -389,7 +375,48 @@ public class AiRagSchemaJson {
                     ", date='" + date + '\'' +
                     ", time='" + time + '\'' +
                     ", frequency='" + frequency + '\'' +
-                    ", source='" + source + '\'' +
+                    ", source=" + source +
+                    ", confidence=" + confidence +
+                    ", notes='" + notes + '\'' +
+                    '}';
+        }
+    }
+
+    public static class Source {
+        private String type;
+        private String name;
+        private Object page;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Object getPage() {
+            return page;
+        }
+
+        public void setPage(Object page) {
+            this.page = page;
+        }
+
+        @Override
+        public String toString() {
+            return "Source{" +
+                    "type='" + type + '\'' +
+                    ", name='" + name + '\'' +
+                    ", page=" + page +
                     '}';
         }
     }

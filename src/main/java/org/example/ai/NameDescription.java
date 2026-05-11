@@ -1,5 +1,5 @@
 // java
-package org.example.bank.ai;
+package org.example.ai;
 
 import java.util.Objects;
 

@@ -1,5 +1,7 @@
 package org.example.bank.Annotations.ai;
 
+import org.example.bank.commonValues.UploadTypes;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,7 +13,7 @@ public @interface KdbAi {
     String[] tags() default {};
 
     String description();
-    String [] uploadTypes() default {"inputs","raw_inputs","raw"};
+    String [] uploadTypes() default {UploadTypes.INPUTS,UploadTypes.RAW_INPUTS,UploadTypes.RAW};
 
 
     String path() default "";

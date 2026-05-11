@@ -5,16 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import okhttp3.*;
-import org.example.ClassOutputCreator.templates.AirColumnTemplate;
+import org.example.ClassOutputCreator.templates.airtable.AirColumnTemplate;
 import org.example.ClassOutputCreator.templates.ColumnTemplate;
 import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.TableJson;
-import org.example.JsonBuilder.json.ma.tables.columns.AirColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -104,7 +102,7 @@ public enum KDBContext {
 
 
     public QueryResult getQueryByColumns(String gmaName, String maName, String tableName,
-                                         List<ColumnTemplate> byCols,
+                                         List<KdbColumnPersona> byCols,
                                          EntityManager entityManager) throws SQLException {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         MAJson ma = gmaJsonMap.getMa().stream()
@@ -118,7 +116,7 @@ public enum KDBContext {
 
             if (table != null) {
                 List<String> whereClause = new ArrayList<>();
-                for (ColumnTemplate byCol : byCols) {
+                for (KdbColumnPersona byCol : byCols) {
                     if (byCol.getQueryMatchStrings().size() > 1) {
                         List<String> inClause = byCol.getQueryMatchStrings().stream()
                                 .map(s -> "'" + s + "'")
@@ -154,7 +152,7 @@ public enum KDBContext {
 
 
     public QueryResult getQueryByColumns(String gmaName, String maName, String tableName,
-                                         List<ColumnTemplate> byCols,
+                                         List<KdbColumnPersona> byCols,
                                          List<KdbColumnPersona> getCols,
                                          EntityManager entityManager) throws SQLException {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
@@ -173,7 +171,7 @@ public enum KDBContext {
                         .toList();
 
                 List<String> whereClause = new ArrayList<>();
-                for (ColumnTemplate byCol : byCols) {
+                for (KdbColumnPersona byCol : byCols) {
                     if (byCol.getQueryMatchStrings().size() > 1) {
                         List<String> inClause = byCol.getQueryMatchStrings().stream()
                                 .map(s -> "'" + s + "'")
@@ -237,14 +235,14 @@ public enum KDBContext {
         return null;
     }
 
-    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols) throws SQLException {
+    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<KdbColumnPersona> byCols) throws SQLException {
         GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
         MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
         if (ma != null) {
             TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
             if (table != null) {
                 List<String> whereClause = new ArrayList<>();
-                for(ColumnTemplate byCol: byCols){
+                for(KdbColumnPersona byCol: byCols){
 
                     if(byCol.getQueryMatchStrings().size()>1){
                         List<String> inClause = byCol.getQueryMatchStrings().stream().map(s-> "'"+s+"'").toList();
@@ -282,35 +280,59 @@ public enum KDBContext {
 
 
 
-    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<ColumnTemplate> byCols,List<KdbColumnPersona> getCols) throws SQLException {
-        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
-        MAJson ma = gmaJsonMap.getMa().stream().filter(maJson -> Objects.equals(maJson.getName(), maName)).findFirst().orElse(null);
-        if (ma != null) {
-            TableJson table = Arrays.stream(ma.getTables()).filter(tableJson -> Objects.equals(tableJson.getName(), tableName)).findFirst().orElse(null);
-            if (table != null) {
-                String columsSb = getCols.stream().map(KdbColumnPersona::getName).collect(Collectors.joining(",\n"));
+    // java
+    public QueryResult getQueryByColumns(String gmaName, String maName, String tableName, List<KdbColumnPersona> byCols, List<KdbColumnPersona> getCols) throws SQLException {
+        if (byCols == null || byCols.isEmpty()) {
+            throw new IllegalArgumentException("byCols must not be null or empty for getQueryByColumns");
+        }
+        if (getCols == null || getCols.isEmpty()) {
+            throw new IllegalArgumentException("getCols must not be null or empty for getQueryByColumns");
+        }
 
+        GMAJson gmaJsonMap = KDB_CONTEXT.gmaJsonMap.get(gmaName);
+        MAJson ma = gmaJsonMap.getMa().stream()
+                .filter(maJson -> Objects.equals(maJson.getName(), maName))
+                .findFirst().orElse(null);
+
+        if (ma != null) {
+            TableJson table = Arrays.stream(ma.getTables())
+                    .filter(tableJson -> Objects.equals(tableJson.getName(), tableName))
+                    .findFirst().orElse(null);
+
+            if (table != null) {
+                String columsSb = getCols.stream()
+                        .map(KdbColumnPersona::getName)
+                        .collect(Collectors.joining(",\n"));
 
                 List<String> whereClause = new ArrayList<>();
-                for(ColumnTemplate byCol: byCols){
-                    if(byCol.getQueryMatchStrings().size()>1){
-                        List<String> inClause = byCol.getQueryMatchStrings().stream().map(s-> "'"+s+"'").toList();
-                        whereClause.add(byCol.getName() + " IN ( " + String.join(",",inClause) + " )");
+                for (KdbColumnPersona byCol : byCols) {
+                    if (byCol == null) {
+                        throw new IllegalStateException("Encountered null byCol in byCols list");
+                    }
+                    List<String> q = byCol.getQueryMatchStrings();
+                    if (q == null || q.isEmpty()) {
+                        throw new IllegalStateException("Missing queryMatchStrings for column: " + byCol.getName());
+                    }
 
-                    }else {
-                        whereClause.add(byCol.getName() + " = " + "'" + byCol.getQueryMatchStrings().get(0) + "'");
+                    if (q.size() > 1) {
+                        List<String> inClause = q.stream().map(s -> "'" + s.replace("'", "''") + "'").toList();
+                        whereClause.add(byCol.getName() + " IN ( " + String.join(",", inClause) + " )");
+                    } else {
+                        whereClause.add(byCol.getName() + " = '" + q.get(0).replace("'", "''") + "'");
                     }
                 }
+
                 String query = String.format("""
-                        SELECT
-                            %s
-                        FROM
-                            %s.%s
-                        WHERE
-                            %s
-                        """,columsSb,maName,tableName,String.join(" AND ",whereClause));
+                    SELECT
+                        %s
+                    FROM
+                        %s.%s
+                    WHERE
+                        %s
+                    """, columsSb, maName, tableName, String.join(" AND ", whereClause));
+
                 System.out.println(query);
-                return getQueryResultObj(getCols,query,getConnection()) ;
+                return getQueryResultObj(getCols, query, getConnection());
             } else {
                 System.out.println("Table " + tableName + " not found in MA " + maName);
             }
@@ -320,6 +342,7 @@ public enum KDBContext {
 
         return null;
     }
+
 
 
 
@@ -499,7 +522,7 @@ public enum KDBContext {
     }
 
 
-    public void saveAllGma(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings)throws ParseException {
+    public void saveAllGma(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings)throws ParseException {
 
 
         String batchId = "'" + UUID.randomUUID() + "'";
@@ -517,7 +540,7 @@ public enum KDBContext {
 
         try {
             int i = 0;
-            for (EntityInterface entity : entities) {
+            for (SaveInterface entity : entities) {
                 sb.append(entity.getValues(batchId));
 //            System.out.println(entity.getValues());
                 if (++i % 1000 == 0 || i == entities.size()) {
@@ -544,11 +567,12 @@ public enum KDBContext {
             throw new RuntimeException(e);
         }finally {
 
+            System.out.println(delete);
             entityManager.createNativeQuery(delete).executeUpdate();
         }
     }
 
-    public void saveAllGma(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException {
+    public void saveAllGma(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException, ClassNotFoundException {
 
         String tableName =  table.getMaName()+"."+ table.getTableName();
         String insertTableName = tableName + "_insert";
@@ -563,7 +587,7 @@ public enum KDBContext {
         entityManager.createNativeQuery(create).executeUpdate();
 
         int i = 0;
-        for (EntityInterface entity : entities) {
+        for (SaveInterface entity : entities) {
             sb.append(entity.getValues());
 //            System.out.println(entity.getValues());
             if (++i % 1000 == 0 || i == entities.size()) {
@@ -602,7 +626,7 @@ public enum KDBContext {
 //        entityManager.createNativeQuery(drop).executeUpdate();
     }
 
-    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings) throws ParseException {
+    public void saveAll(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings) throws ParseException {
 
 
 //        String batchId = "'" + UUID.randomUUID() + "'";
@@ -627,7 +651,7 @@ public enum KDBContext {
 
         try {
             int i = 0;
-            for (EntityInterface entity : entities) {
+            for (SaveInterface entity : entities) {
                 sb.append(entity.getValues());
 //            System.out.println(entity.getValues());
                 if (++i % 1000 == 0 || i == entities.size()) {
@@ -658,7 +682,7 @@ public enum KDBContext {
         }
     }
 
-    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException {
+    public void saveAll(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks) throws ParseException, ClassNotFoundException {
 
         String tableName =  table.getMaName()+"."+ table.getTableName();
         String insertTableName = tableName + "_insert";
@@ -673,7 +697,7 @@ public enum KDBContext {
         entityManager.createNativeQuery(create).executeUpdate();
 
         int i = 0;
-        for (EntityInterface entity : entities) {
+        for (SaveInterface entity : entities) {
             sb.append(entity.getValues());
 //            System.out.println(entity.getValues());
             if (++i % 1000 == 0 || i == entities.size()) {
@@ -712,7 +736,7 @@ public enum KDBContext {
 //        entityManager.createNativeQuery(drop).executeUpdate();
     }
 
-//    public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager) throws ParseException {
+//    public void saveAll(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager) throws ParseException {
 //
 //        String tableName = table.getTableName();
 //        String insertTableName = tableName + "_insert";
@@ -727,7 +751,7 @@ public enum KDBContext {
 //        entityManager.createNativeQuery(create).executeUpdate();
 //
 //        int i = 0;
-//        for (EntityInterface entity : entities) {
+//        for (SaveInterface entity : entities) {
 //            sb.append(entity.getValues());
 //            System.out.println(entity.getValues());
 //            if (++i % 1000 == 0 || i == entities.size()) {
@@ -747,7 +771,7 @@ public enum KDBContext {
     public void saveEntities(StringBuilder sb, EntityManager entityManager) {
         sb.setLength(sb.length() - 1);
         String modifiedString = sb.toString().replace("'null'", "NULL").replace("'DEFAULT'", "DEFAULT");
-//        System.out.println(modifiedString);
+        System.out.println(modifiedString);
         try {
             System.out.println(modifiedString.substring(0, Math.min(modifiedString.length(), 10000)));
             Files.write(Path.of("query.txt"), modifiedString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.APPEND);

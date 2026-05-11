@@ -5,18 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class AppConfig {
-    public static String getPyServerUrl(){
-//        return "http://localhost:8000";
-        return "http://127.0.0.1:5000";
-        //        return "https://my-app.salmongrass-0af099c8.eastus.azurecontainerapps.io";
-    }
-
-    public static String getAiSchema() {
-        return "ai";
-    }
-
     private static final Properties properties = new Properties();
-
     static {
         try (InputStream input = AppConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
             if (input == null) {
@@ -27,6 +16,25 @@ public class AppConfig {
             throw new RuntimeException("Failed to load application.properties", e);
         }
     }
+
+
+    public static String getPyServerUrl(){
+//        return "http://localhost:8000";
+        return "http://127.0.0.1:5000";
+        //        return "https://my-app.salmongrass-0af099c8.eastus.azurecontainerapps.io";
+    }
+
+    public static String getAzureConnectionString(){
+        return properties.getProperty("AZURE_CONNECTION_STRING", null);
+    }
+
+    public static String getAiSchema() {
+        return "ai";
+    }
+
+
+
+
 
     public static String getJavaDir() {
         System.out.println("Java Dir: " + properties.getProperty("app.javaDir", ""));

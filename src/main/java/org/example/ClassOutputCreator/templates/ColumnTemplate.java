@@ -1,18 +1,19 @@
 package org.example.ClassOutputCreator.templates;
 
-import org.example.ClassOutputCreator.GenericInterface.GenericColumnInterface;
+
+import org.example.ClassOutputCreator.GenericInterface.SaveInterfaceColumn;
 import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.KdbConverter.DefaultKdbConverter;
 import org.example.bank.KdbConverter.KdbConverter;
 import org.example.bank.KdbConverter.KdbConverterFactory;
 import org.example.bank.OutputClassBank.KdbColumnPersona;
-import org.example.service.PythonService;
+import org.example.ai.PythonService;
 
 
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ColumnTemplate implements KdbColumnPersona, GenericColumnInterface {
+public abstract class ColumnTemplate implements KdbColumnPersona, SaveInterfaceColumn {
 
     protected final String name;
     protected final String colId;
@@ -82,9 +83,7 @@ public abstract class ColumnTemplate implements KdbColumnPersona, GenericColumnI
         return isEmbedding;
     }
 
-    public boolean isPrimaryKey() {
-        return isPrimaryKey;
-    }
+
 
     public void setPrimaryKey(boolean primaryKey) {
         isPrimaryKey = primaryKey;
@@ -168,6 +167,11 @@ public abstract class ColumnTemplate implements KdbColumnPersona, GenericColumnI
 
     public String getName() {
         return name.replace(" ", "_").toLowerCase();
+    }
+
+    @Override
+    public boolean isPrimaryKey() {
+        return this.isPrimaryKey;
     }
 
     public String getRealName() {

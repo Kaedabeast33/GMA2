@@ -4,16 +4,22 @@ import com.google.gson.Gson;
 import org.example.JsonBuilder.json.ref.RefColumnJson;
 import org.example.JsonBuilder.json.ref.ReferenceColumnJson;
 import org.example.bank.Annotations.*;
+import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.KdbConverter.DefaultKdbConverter;
+import org.example.bank.KdbConverter.KdbConverter;
+import org.example.bank.KdbConverter.KdbConverterFactory;
 import org.example.bank.OutputClassBank.KdbColumnPersona;
 import org.example.bank.commonValues.Identifier;
+import org.springframework.boot.autoconfigure.gson.GsonProperties;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import static org.example.JsonBuilder.IDE.JsonBuilder.createGson;
 import static org.example.bank.AppConfig.getJavaDir;
+import static org.example.bank.commonValues.ValueTypes.FIELD_TYPE_MAP;
 import static org.example.bank.commonValues.ValueTypes.TYPE_MAP;
 
 
@@ -41,6 +47,77 @@ public class ColumnJson implements KdbColumnPersona {
     String fieldType;
     String kdbConverter;
     boolean isEmbedding;
+    EntityValue<?> entityValue;
+    List<String> queryMatchStrings;
+
+
+    private transient Gson gson = new Gson();
+
+// java
+// In file: `src/main/java/org/example/JsonBuilder/json/ma/tables/columns/ColumnJson.java`
+
+    private Class<?> resolveClass(String typeName) throws ClassNotFoundException {
+        // handle array types like "java.lang.Double[]" or "int[][]"
+        if (typeName.endsWith("[]")) {
+            String componentName = typeName.substring(0, typeName.length() - 2);
+            Class<?> compClass = resolveClass(componentName);
+            // create a zero-length array to obtain the array Class object
+            return java.lang.reflect.Array.newInstance(compClass, 0).getClass();
+        }
+
+        // primitives
+        return switch (typeName) {
+            case "int" -> int.class;
+            case "long" -> long.class;
+            case "double" -> double.class;
+            case "float" -> float.class;
+            case "boolean" -> boolean.class;
+            case "char" -> char.class;
+            case "byte" -> byte.class;
+            case "short" -> short.class;
+            case "void" -> void.class;
+            default -> Class.forName(typeName);
+        };
+    }
+
+    // Replace usages of Class.forName(typeName) with resolveClass(typeName).
+// Example replacement inside getEntityValue:
+// original: Class<?> cls = Class.forName(typeName);
+// updated:
+
+
+    public ColumnJson setQueryMatchStrings(List<String> queryMatchStrings) {
+
+        this.queryMatchStrings =    queryMatchStrings;
+
+        return  gson.fromJson(gson.toJson(this), ColumnJson.class);
+    }
+
+    public EntityValue<?> getEntityValue() throws ClassNotFoundException {
+        //            throw new IllegalStateException("Entity value not set for column: " + this.name);
+        String className = FIELD_TYPE_MAP.get(this.fieldType).replace(".class", "");
+
+// load the Class object
+        Class<?> clazz = resolveClass(className);
+//        System.out.println(clazz.getSimpleName() + " resolved for fieldType: " + this.fieldType);
+
+        return Objects.requireNonNullElseGet(entityValue, () -> new EntityValue<>(null,clazz    ));
+    }
+
+    public void setEntityValue(Object entityValue) throws Exception {
+        EntityValue<?> converted;
+
+
+
+            KdbConverter<Object, ?> converter = KdbConverterFactory.getConverter(this.type);
+
+            if (converter == null) {
+                throw new IllegalStateException("No converter registered for type: " + this.type);
+            }
+            converted = converter.convert(entityValue);
+
+        this.entityValue = converted;
+    }
 
 
 
@@ -66,7 +143,7 @@ public class ColumnJson implements KdbColumnPersona {
 //        for (int i=0;i<kdbColumn.columnGroupNames().length;i++){
 //            columnGroups[i] = new RefColumnGroupJson(kdbColumn.columnGroupNames()[i]);
 //        }
-        this.unique = kdbPrimaryKey != null ? true : kdbColumn.unique();
+        this.unique = kdbColumn.unique();
         this.uniqueIdentifier = kdbColumn.uniqueIdentifier();
 //        this.uniqueIdentifierGroups = new RefUniqueColumnGroupJson[kdbColumn.uniqueIdentifierGroupNames().length];
 //        for (int i=0;i<kdbColumn.uniqueIdentifierGroupNames().length;i++){
@@ -74,7 +151,8 @@ public class ColumnJson implements KdbColumnPersona {
 //        }
         this.isRequired = kdbPrimaryKey != null || kdbColumn.isRequired();
 
-        this.type =kdbEmbedding!=null?String.format("VECTOR(%s)",kdbEmbedding.size()): !Objects.equals(kdbColumn.type(), "default") ? kdbColumn.type() : TYPE_MAP.get(fieldType);
+//        this.type =kdbEmbedding!=null?String.format("VECTOR(%s)",kdbEmbedding.size()): !Objects.equals(kdbColumn.type(), "default") ? kdbColumn.type() : TYPE_MAP.get(fieldType);
+        this.type =kdbEmbedding!=null? "TEXT": !Objects.equals(kdbColumn.type(), "default") ? kdbColumn.type() : TYPE_MAP.get(fieldType);
 
         this.fieldType = fieldType.getSimpleName();
 //        System.out.println("9999"+this.type +this.name+this.fieldType);
@@ -183,6 +261,11 @@ public class ColumnJson implements KdbColumnPersona {
 
     public boolean isPrimaryKey() {
         return isPrimaryKey;
+    }
+
+    @Override
+    public List<String> getQueryMatchStrings() {
+        return this.queryMatchStrings;
     }
 
     public void setPrimaryKey(boolean primaryKey) {

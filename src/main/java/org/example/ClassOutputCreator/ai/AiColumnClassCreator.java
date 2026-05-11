@@ -1,7 +1,7 @@
 package org.example.ClassOutputCreator.ai;
 
 
-import org.example.JsonBuilder.json.ma.tables.columns.AirColumnJson;
+import org.example.JsonBuilder.json.ma.tables.columns.AiColumnJson;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,14 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.example.ClassOutputCreator.ClassCreator.*;
+import static org.example.ClassOutputCreator.ClassCreator.wrapWithQuotes;
 import static org.example.ClassOutputCreator.GMAClassCreator.generatePackageDeclaration;
+import static org.example.ClassOutputCreator.ai.AiMAClassCreator.getAiColName;
 import static org.example.bank.commonValues.ValueTypes.FIELD_TYPE_MAP;
 
 public class AiColumnClassCreator {
     String name;
 
 
-    public AiColumnClassCreator(List<String> curDir, List<String> pkgDir, AirColumnJson column) throws IOException {
+    public AiColumnClassCreator(List<String> curDir, List<String> pkgDir, AiColumnJson column) throws IOException {
         List<String> safeDir = new ArrayList<>(curDir); // Make a safe copy of the directory path
         List<String> safePkgDir = new ArrayList<>(pkgDir);
 //        System.out.println("creating Column for " + column);
@@ -35,8 +37,10 @@ public class AiColumnClassCreator {
     }
 
 
-    private static void generateColFields(AirColumnJson columnJson, List<String> curDir, List<String> pkgDir) throws IOException {
-        String className = "AIRCOL_" + columnJson.getName();
+    private static void generateColFields(AiColumnJson columnJson, List<String> curDir, List<String> pkgDir) throws IOException {
+        String className = getAiColName(columnJson);
+
+
         Path path = Path.of(String.join(File.separator, curDir) + File.separator + className + ".java");
 
         // Check if the path exists and is a directory
@@ -50,13 +54,13 @@ public class AiColumnClassCreator {
 
         List<String> childDirs = new ArrayList<>();
         pkgDir.add("columns");
-        generatePackageDeclaration(pkgDir, childDirs, new ArrayList<>(List.of(new String[]{"AirColumnTemplate"})), path, false);
+        generatePackageDeclaration(pkgDir, childDirs, new ArrayList<>(List.of(new String[]{"ai.AiColumnTemplate"})), path, false);
 
 
 //        if(columnJson.getType())
 
         String classFormat = """
-                public class %s extends AirColumnTemplate {
+                public class %s extends AiColumnTemplate {
                 
                     public %s() {
                         super(
@@ -64,14 +68,11 @@ public class AiColumnClassCreator {
                             %s,  // columnId
                             %s,  // description
                             %s,  // tags
-                            
-                            %s,  // fieldtype
-                            %s,  // defaultValue
-                            %s, // columnGroups
-                            %s.class // kdbConverter
-                            
-                
-                
+                            %s, // fieldType
+                            %s, //type
+                            %s, // defaultValue
+                            %s, // isKey
+                            %s // isPrimaryKey
                         );
                     }
                 
@@ -83,11 +84,14 @@ public class AiColumnClassCreator {
                 wrapWithQuotes(columnJson.getColumnId()),
                 wrapWithQuotes(columnJson.getDescription()),
                 toArrayLiteral(safeArray(columnJson.getTags())),
-
                 FIELD_TYPE_MAP.get(columnJson.getFieldType()),
-                wrapWithQuotes(columnJson.getDefaultValue()),
-                toArrayLiteral(safeNameList(columnJson.getColumnGroups(), obj -> obj.getName()).toArray(new String[0])),
-                columnJson.getKdbConverter()
+                wrapWithQuotes(columnJson.getType()),
+                wrapWithQuotes(columnJson.getDefaultValue()) ,
+                columnJson.isKey(),
+                columnJson.isPrimaryKey()
+
+
+
 
 
         );

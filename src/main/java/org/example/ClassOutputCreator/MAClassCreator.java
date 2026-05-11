@@ -65,7 +65,7 @@ public class MAClassCreator {
 
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"MATemplate", "TableTemplate"}), path, false);
         generatePomImports(path,List.of("org.springframework.transaction.annotation.Transactional","jakarta.persistence.EntityManager","java.text.ParseException", "jakarta.persistence.PersistenceContext","java.util.List","org.springframework.stereotype.Component"));
-        generateBankImports(path, List.of("EntityInterface"));
+        generateBankImports(path, List.of("SaveInterface"));
         generateContextImport(path);
         generateMaFields(ma, gmaName, path);
         generateMaTables(ma, path);
@@ -82,33 +82,33 @@ public class MAClassCreator {
         if( ma.getTransactionManagerBeanName()!=null && ma.getTransactionManagerBeanName().isEmpty() ) {
             initial = """
                         @Transactional
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,String batchId) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings,String batchId) throws ParseException, ClassNotFoundException {
                             context.saveAll(table, entities, entityManager, upsertStrings,batchId);
                         }
                         
                         @Transactional
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks,String batchId) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities,  EntityManager entityManager,List<String> upsertStrings,List<String> checks,String batchId) throws ParseException, ClassNotFoundException {
                             context.saveAll(table, entities, entityManager, upsertStrings,checks,batchId);
                         }
                         
                         @Transactional
-                        public void saveAllGma(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException {
+                        public void saveAllGma(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException, ClassNotFoundException {
                             context.saveAllGma(table, entities, entityManager, upsertStrings);
                        }
                        
                        @Transactional
-                        public void saveAllGma(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException {
+                        public void saveAllGma(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException, ClassNotFoundException {
                             context.saveAllGma(table, entities, entityManager, upsertStrings,checks);
                        }
                     """;
         }
         else if(ma.getTransactionManagerBeanName().equalsIgnoreCase("transactionless")){
             initial = """
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings) throws ParseException, ClassNotFoundException {
                             context.saveAllTransactionless(table,entities,user,pass,jdbcUrl,upsertStrings);
                         }
                         
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings,List<String>checks) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities,String user,String pass,String jdbcUrl, List<String> upsertStrings,List<String>checks) throws ParseException, ClassNotFoundException {
                             context.saveAllTransactionless(table,entities,user,pass,jdbcUrl,upsertStrings,checks);
                         }
                     """;
@@ -118,23 +118,23 @@ public class MAClassCreator {
 
             initial = String.format("""
                         @Transactional(transactionManager = "%s")
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException, ClassNotFoundException {
                             context.saveAll(table, entities, entityManager, upsertStrings);
                        }
                        
                        @Transactional(transactionManager = "%s")
-                        public void saveAll(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException {
+                        public void saveAll(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException, ClassNotFoundException {
                             context.saveAll(table, entities, entityManager, upsertStrings,checks);
                        }
                        
                        
                        @Transactional(transactionManager = "%s")
-                        public void saveAllGma(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException {
+                        public void saveAllGma(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings) throws ParseException, ClassNotFoundException {
                             context.saveAllGma(table, entities, entityManager, upsertStrings);
                        }
                        
                        @Transactional(transactionManager = "%s")
-                        public void saveAllGma(EntityInterface table, List<EntityInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException {
+                        public void saveAllGma(SaveInterface table, List<SaveInterface> entities, EntityManager entityManager, List<String> upsertStrings,List<String>checks) throws ParseException, ClassNotFoundException {
                             context.saveAllGma(table, entities, entityManager, upsertStrings,checks);
                        }
                     """, ma.getTransactionManagerBeanName(), ma.getTransactionManagerBeanName(),ma.getTransactionManagerBeanName(), ma.getTransactionManagerBeanName());

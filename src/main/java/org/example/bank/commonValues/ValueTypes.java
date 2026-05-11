@@ -43,6 +43,7 @@ public class ValueTypes {
 
     static {
         TYPE_MAP.put(String.class, ValueTypes.STRING);
+//        TYPE_MAP.put(String.class, ValueTypes.STRING);
         TYPE_MAP.put(Integer.class, ValueTypes.INTEGER);
         TYPE_MAP.put(Boolean.class, ValueTypes.BOOLEAN);
         TYPE_MAP.put(Float.class, ValueTypes.FLOAT);

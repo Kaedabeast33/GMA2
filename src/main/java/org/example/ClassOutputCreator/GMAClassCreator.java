@@ -1,6 +1,8 @@
 package org.example.ClassOutputCreator;
 
 
+import org.example.ClassOutputCreator.ai.AiMAClassCreator;
+import org.example.ClassOutputCreator.airtable.AirMAClassCreator;
 import org.example.JsonBuilder.json.GMAJson;
 import org.example.JsonBuilder.json.ma.AirMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
@@ -21,6 +23,7 @@ import static org.example.ClassOutputCreator.TableClassCreator.generateContextIm
 public class GMAClassCreator {
     List<MAClassCreator> maList;
     List<AirMAClassCreator> airMaList;
+    List<AiMAClassCreator> aiMaList;
     String name;
     List<String> curDir;
     List<String> pkgDir = new java.util.ArrayList<>();
@@ -65,6 +68,17 @@ public class GMAClassCreator {
                 .map(ma -> {
                     try {
                         return new MAClassCreator(ma, this.curDir, this.pkgDir, this.name);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+
+        this.aiMaList = gma.getAiMa().stream()
+
+                .map(ma -> {
+                    try {
+                        return new AiMAClassCreator(ma, this.curDir, this.pkgDir, this.name);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -129,7 +143,7 @@ public class GMAClassCreator {
         }
     }
 
-    static void generatePomImports(Path path, List<String> imports) {
+    public static void generatePomImports(Path path, List<String> imports) {
 
         for( String importStr : imports){
             try {
@@ -140,7 +154,7 @@ public class GMAClassCreator {
         }
     }
 
-    static void generateBankImports(Path path, List<String> imports){
+    public static void generateBankImports(Path path, List<String> imports){
         StringBuilder importDecleration = new StringBuilder();
         for (String importStr : imports) {
             importDecleration.append("import ").append(javaDir).append(".bank.OutputClassBank").append(".").append(importStr).append(";\n");
@@ -169,7 +183,7 @@ public class GMAClassCreator {
 
     ;
 
-    static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates, Path path, boolean skipPackage) {
+    public static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates, Path path, boolean skipPackage) {
 //        List<String> importDir = new java.util.ArrayList<>(pkgDir.stream().toList());
 //        importDir.remove(importDir.size()-1);
         StringBuilder templatesDecleration = new StringBuilder();
@@ -234,7 +248,7 @@ public class GMAClassCreator {
         }
     }
 
-    static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates,List<String> jsons, List<String> statics, Path path, boolean skipPackage) {
+    public static void generatePackageDeclaration(List<String> pkgDir, List<String> childDirs, List<String> templates, List<String> jsons, List<String> statics, Path path, boolean skipPackage) {
 //        List<String> importDir = new java.util.ArrayList<>(pkgDir.stream().toList());
 //        importDir.remove(importDir.size()-1);
 

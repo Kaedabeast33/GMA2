@@ -1,9 +1,7 @@
-package org.example.ClassOutputCreator;
+package org.example.ClassOutputCreator.airtable;
 
 import org.example.JsonBuilder.json.ma.AirMAJson;
-import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.JsonBuilder.json.ma.tables.AirTableJson;
-import org.example.JsonBuilder.json.ma.tables.TableJson;
 
 import java.io.File;
 import java.io.IOException;

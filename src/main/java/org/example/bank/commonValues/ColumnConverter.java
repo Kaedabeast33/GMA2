@@ -2,7 +2,7 @@ package org.example.bank.commonValues;
 
 
 
-import org.example.ClassOutputCreator.templates.AirColumnTemplate;
+import org.example.ClassOutputCreator.templates.airtable.AirColumnTemplate;
 import org.example.ClassOutputCreator.templates.ColumnTemplate;
 import org.example.JsonBuilder.json.ma.tables.columns.AirColumnJson;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;

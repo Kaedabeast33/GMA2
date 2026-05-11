@@ -1,5 +1,6 @@
 package org.example.bank.KdbConverter;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,15 +40,16 @@ public class KdbConverterFactory {
         FIELD_TYPE_CONVERTER_MAP.put(LocalDateTime.class.getSimpleName(), Converters.DATETIME);
             FIELD_TYPE_CONVERTER_MAP.put(Integer.class.getSimpleName(), Converters.INTEGER);
             FIELD_TYPE_CONVERTER_MAP.put(Boolean.class.getSimpleName(), Converters.TRUEBOOLEAN);
+            FIELD_TYPE_CONVERTER_MAP.put(Timestamp.class.getSimpleName(), Converters.TIMESTAMP);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> KdbConverter<Object, T> getConverter(String mysqlType) {
-        if(mysqlType.contains("VARCHAR")) {
+        if(mysqlType.toUpperCase().contains("VARCHAR")) {
             mysqlType = "VARCHAR";
         }
 
-        if(mysqlType.contains("VECTOR")) {
+        if(mysqlType.toUpperCase().contains("VECTOR")) {
             mysqlType = "VECTOR";
         }
 
@@ -61,6 +63,7 @@ public class KdbConverterFactory {
             return (KdbConverter<Object, T>) Converters.STRING;
         }
 
+        System.out.println(mysqlType.getSimpleName()+ " HERE");
         KdbConverter<?, ?> conv = FIELD_TYPE_CONVERTER_MAP.get(mysqlType.getSimpleName());
         if (conv == null) {
             return (KdbConverter<Object, T>) Converters.STRING;

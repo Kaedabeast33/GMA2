@@ -1,6 +1,7 @@
 package org.example.JsonBuilder.json.ma.tables.columns;
 
 import org.example.bank.Annotations.KdbColumn;
+import org.example.bank.Annotations.ai.AiFieldsComb;
 import org.example.bank.Annotations.ai.KdbAiColumn;
 import org.example.bank.OutputClassBank.KdbAiColumnPersona;
 import org.example.bank.commonValues.Identifier;
@@ -8,6 +9,8 @@ import org.example.bank.commonValues.Identifier;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
+
+import static org.example.bank.commonValues.ValueTypes.TYPE_MAP;
 
 public class AiColumnJson implements KdbAiColumnPersona {
 
@@ -19,6 +22,9 @@ public class AiColumnJson implements KdbAiColumnPersona {
         Identifier identifier;
 
 
+        String[] uploadTypes;
+        String type;
+
 
 
 
@@ -26,7 +32,10 @@ public class AiColumnJson implements KdbAiColumnPersona {
 
         String fieldType;
 
-        GroupDTO[] columnGroups;
+        boolean isPrimaryKey;
+        boolean isKey;
+
+
 
 
 
@@ -46,6 +55,8 @@ public class AiColumnJson implements KdbAiColumnPersona {
             this.identifier.setColumnName(this.name);
             this.description = kdbColumn.description();
             this.tags = kdbColumn.tags();
+            this.uploadTypes = kdbColumn.uploadTypes();
+            this.type = !Objects.equals(kdbColumn.type(), "default") ? kdbColumn.type() : TYPE_MAP.get(fieldType);
 
 
 
@@ -55,11 +66,23 @@ public class AiColumnJson implements KdbAiColumnPersona {
 
 
 
+
 //        Create RefColumnJson [] using the  KdbReference Annotation of a column definition passed into it which converts it from gson
 
         }
 
-        public AiColumnJson(ColumnDTO column) {
+
+
+
+    public String[] getUploadTypes() {
+        return uploadTypes;
+    }
+
+    public void setUploadTypes(String[] uploadTypes) {
+        this.uploadTypes = uploadTypes;
+    }
+
+    public AiColumnJson(ColumnDTO column) {
             this.name = column.getName();
             this.description = column.getDescription();
             this.tags = column.getTags();
@@ -117,8 +140,15 @@ public class AiColumnJson implements KdbAiColumnPersona {
             this.identifier = identifier;
         }
 
+    public String getType() {
+        return type;
+    }
 
-        public String getDefaultValue() {
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getDefaultValue() {
             return defaultValue;
         }
 
@@ -134,7 +164,24 @@ public class AiColumnJson implements KdbAiColumnPersona {
             this.fieldType = fieldType;
         }
 
-        @Override
+
+    public boolean isPrimaryKey() {
+        return isPrimaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        isPrimaryKey = primaryKey;
+    }
+
+    public boolean isKey() {
+        return isKey;
+    }
+
+    public void setKey(boolean key) {
+        isKey = key;
+    }
+
+    @Override
         public String toString() {
             return "ColumnJson{" +
                     "name='" + name + "' ->" +
@@ -175,22 +222,5 @@ public class AiColumnJson implements KdbAiColumnPersona {
         }
 
 
-        public void addColumnGroup(GroupDTO groupDTO) {
-            if (this.columnGroups == null) {
-                this.columnGroups = new GroupDTO[]{groupDTO};
-            } else {
-                GroupDTO[] newColumnGroups = Arrays.copyOf(this.columnGroups, this.columnGroups.length + 1);
-                newColumnGroups[newColumnGroups.length - 1] = groupDTO;
-                this.columnGroups = newColumnGroups;
-            }
 
-        }
-
-        public GroupDTO[] getColumnGroups() {
-            return columnGroups;
-        }
-
-        public void setColumnGroups(GroupDTO[] columnGroups) {
-            this.columnGroups = columnGroups;
-        }
 }

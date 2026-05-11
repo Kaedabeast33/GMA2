@@ -1,4 +1,4 @@
-package org.example.ClassOutputCreator.templates;
+package org.example.ClassOutputCreator.templates.airtable;
 
 import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.KdbConverter.DefaultKdbConverter;

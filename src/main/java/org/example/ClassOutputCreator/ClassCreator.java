@@ -84,6 +84,10 @@ public class ClassCreator {
         if (values.length == 0) return "new String[]{\"\"}";
         return "new String[]{" + String.join(", ", wrapWithQuotes(values)) + "}";
     }
+    public static String toArrayLiteralNoQuotes(List<String> values) {
+        if (values.isEmpty()) return "List.of()";
+        return "List.of(" + String.join(", " ,values) + ")";
+    }
 
     public static String[] wrapWithQuotes(String[] arr) {
         if (arr == null) return new String[]{""};

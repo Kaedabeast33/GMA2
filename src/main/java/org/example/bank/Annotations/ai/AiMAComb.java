@@ -13,6 +13,7 @@ public class AiMAComb {
     KdbAi kdbAi;
     private List<AiFieldsComb> fieldsComb = new ArrayList<>();
     String name;
+
     String description;
     String[] tags;
 

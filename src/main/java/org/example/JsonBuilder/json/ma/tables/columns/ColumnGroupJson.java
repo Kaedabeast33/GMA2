@@ -1,6 +1,6 @@
 package org.example.JsonBuilder.json.ma.tables.columns;
 
-import org.example.ClassOutputCreator.GenericInterface.GenericColumnInterface;
+;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,26 +26,26 @@ public class ColumnGroupJson {
 
     }
 
-    public static ColumnGroupJson buildAiColumnGroupJson(Map.Entry<String, List<AiColumnJson>> value) {
-        ColumnGroupJson columnGroupJson =  new ColumnGroupJson();
-
-        columnGroupJson.name = value.getKey();
-        for (int i = 0; i < value.getValue().size(); i++) {
-            if (i == 0) {
-                columnGroupJson.groupColumns = new ColumnDTO[value.getValue().size()];
-            }
-            columnGroupJson.groupColumns[i] = new ColumnDTO(value.getValue().get(i));
-
-        }
-
-        GroupDTO group = new GroupDTO(columnGroupJson.name, columnGroupJson.columnGroupId, Objects.requireNonNull(columnGroupJson.groupColumns));
-
-        for (int j = 0; j < Objects.requireNonNull(columnGroupJson.groupColumns).length; j++) {
-            value.getValue().get(j).addColumnGroup(group);
-        }
-
-        return columnGroupJson;
-    }
+//    public static ColumnGroupJson buildAiColumnGroupJson(Map.Entry<String, List<AiColumnJson>> value) {
+//        ColumnGroupJson columnGroupJson =  new ColumnGroupJson();
+//
+//        columnGroupJson.name = value.getKey();
+//        for (int i = 0; i < value.getValue().size(); i++) {
+//            if (i == 0) {
+//                columnGroupJson.groupColumns = new ColumnDTO[value.getValue().size()];
+//            }
+//            columnGroupJson.groupColumns[i] = new ColumnDTO(value.getValue().get(i));
+//
+//        }
+//
+//        GroupDTO group = new GroupDTO(columnGroupJson.name, columnGroupJson.columnGroupId, Objects.requireNonNull(columnGroupJson.groupColumns));
+//
+//        for (int j = 0; j < Objects.requireNonNull(columnGroupJson.groupColumns).length; j++) {
+//            value.getValue().get(j).addColumnGroup(group);
+//        }
+//
+//        return columnGroupJson;
+//    }
 
 
 

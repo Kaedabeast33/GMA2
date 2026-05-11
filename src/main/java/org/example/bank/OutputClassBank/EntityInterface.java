@@ -1,7 +1,7 @@
 package org.example.bank.OutputClassBank;
 
 import jakarta.persistence.EntityManager;
-import org.example.ClassOutputCreator.templates.ColumnTemplate;
+import org.example.bank.OutputClassBank.KdbColumnPersona;
 import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 
 import java.sql.SQLException;
@@ -60,12 +60,12 @@ public interface EntityInterface {
     String getUploadInsert();
     String getUploadInsert(Boolean includePrimaryKey );
 
-    QueryResult getQueryByCols(List<ColumnTemplate> byColumns, EntityManager entityManager) throws SQLException;
-    QueryResult getQueryByCols(List<ColumnTemplate> byColumns,List<KdbColumnPersona> getColumns, EntityManager entityManager) throws SQLException;
+    QueryResult getQueryByCols(List<KdbColumnPersona> byColumns, EntityManager entityManager) throws SQLException;
+    QueryResult getQueryByCols(List<KdbColumnPersona> byColumns,List<KdbColumnPersona> getColumns, EntityManager entityManager) throws SQLException;
     QueryResult getQuery(List<KdbColumnPersona> getColumns, EntityManager entityManager) throws SQLException;
 
-    QueryResult getQueryByCols(List<ColumnTemplate> byColumns) throws SQLException;
-    QueryResult getQueryByCols(List<ColumnTemplate> byColumns,List<KdbColumnPersona> getColumns) throws SQLException;
+    QueryResult getQueryByCols(List<KdbColumnPersona> byColumns) throws SQLException;
+    QueryResult getQueryByCols(List<KdbColumnPersona> byColumns,List<KdbColumnPersona> getColumns) throws SQLException;
     QueryResult getQuery(List<KdbColumnPersona> getColumns) throws SQLException;
 
 //    String getDependencies();

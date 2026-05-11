@@ -12,12 +12,46 @@ package org.example;
 //import org.example.output.dorm.orders.master_raw_orders.TAB_master_raw_orders;
 
 
+import org.example.ClassOutputCreator.templates.ai.AiColumnTemplate;
+import org.example.JsonBuilder.json.GMAJson;
+import org.example.JsonBuilder.json.ma.AiMAJson;
+import org.example.JsonBuilder.json.ma.MAJson;
+import org.example.JsonBuilder.json.ma.tables.TableJson;
+import org.example.JsonBuilder.json.ma.tables.columns.AiColumnJson;
+
+import org.example.ai.AiRagSchemaJson;
+import org.example.bank.OutputClassBank.KDBContext;
+import org.example.bank.OutputClassBank.KdbContextAi;
+import org.example.bank.commonValues.TableTypes;
+
+
+//y
+
+
 import org.example.service.Actions;
 
+
+//import org.example.service.TestService;
+//import org.example.service.TestService;
+
+import org.example.service.TestService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.example.bank.AppConfig.getGmaName;
+import static org.example.bank.OutputClassBank.KdbColumnWrapper.safeGetValue;
 
 @EnableConfigurationProperties
 @SpringBootApplication//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -30,44 +64,26 @@ public class Main {
 
         actions.buildGmaContext();
         actions.mainRun();
-
-
-
-
-
-
-//        AIRMA_friend_airtable ma = new AIRMA_friend_airtable();
-//        AIRTAB_kaeden test = new AIRTAB_kaeden();
-//         test.getAIRCOL_name().setEntityValue("kaeden");
-//         test.getAIRCOL_status().setEntityValue(true);
 //
-//
-//        ma.saveAllAirtable(test, List.of(test), testService.getBearer(),toPersonaAirTemplate(List.of(test.getAIRCOL_name(),test.getAIRCOL_status())), toPersonaAirTemplate(List.of(test.getAIRCOL_name())));
-
-
-//        service.upload();
+        TestService service= context.getBean(TestService.class);
+        service.test();
 
 
 
-        // Only run mainRun when NOT running in production profiles
-//        Environment env = context.getEnvironment();
-//        boolean isProd;
-//        try {
-//            isProd = env.acceptsProfiles(Profiles.of("production")) || env.acceptsProfiles(Profiles.of("prod"));
-//        } catch (NoSuchMethodError ignored) {
-//            String[] active = env.getActiveProfiles();
-//            isProd = Arrays.asList(active).contains("production") || Arrays.asList(active).contains("prod") || "production".equalsIgnoreCase(env.getProperty("spring.profiles.active"));
-//        }
-//
-//        if (!isProd) {
-//            actions.mainRun();
-//        } else {
-//            System.out.println("Skipping Actions.mainRun() because running in production profile.");
-//        }
 
 
 
-//        actions.writeDbGmaStructure();
+
+
+
+
+
+
+
+
+
+
+
 
 
 

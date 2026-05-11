@@ -1,3 +1,8 @@
 Json Maker
 Annotations -> Table Combs -> GMAJson + Json Constructors -> Json Context (AI AIR DEFAULT) || Class Builder / creation
 Depending on the Json Types the different contexts will be built with their capabilities (right now air and default are on the same but we need to change that.)
+
+
+
+Primary Keys are what need to be the unique identifiers for rawinputs
+Keys are what is used to query

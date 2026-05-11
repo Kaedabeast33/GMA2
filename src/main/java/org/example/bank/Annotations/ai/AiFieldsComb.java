@@ -43,5 +43,6 @@ public class AiFieldsComb {
     }
 
     public void setKdbKey(KdbAiKey kdbKey) {
+        this.kdbAiKey = kdbKey;
     }
 }

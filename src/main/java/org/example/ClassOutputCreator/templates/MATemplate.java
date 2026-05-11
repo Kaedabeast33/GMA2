@@ -26,7 +26,7 @@ public abstract class MATemplate {
 
     }
 
-    public void saveAll(EntityInterface table, List<EntityInterface> entities, Supplier<?> insertFunction, EntityManager entityManager) throws ParseException {}
+
 
     public String getGmaName() {
         return gmaName;

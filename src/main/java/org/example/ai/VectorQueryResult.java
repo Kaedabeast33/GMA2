@@ -1,7 +1,9 @@
-package org.example.bank.ai;
+package org.example.ai;
 
 
-import org.example.APP.schemas.vyta.client_med.inputs.TAB_inputs;
+
+
+
 import org.example.bank.OutputClassBank.QueryResult;
 
 import java.sql.Connection;
@@ -35,18 +37,19 @@ public class VectorQueryResult {
     }
 
     public String getValue() throws SQLException {
-        Connection connection = DriverManager.getConnection(getJdbcUrl(),getJdbcUser(),getJdbcPassword());
-        String selectInputs = String.format("""
-                SELECT
-                    %s
-                from %s
-                where %s = '%s'
-
-
-                """, new TAB_inputs().getCOL_value().getName(), new TAB_inputs().getMaName() + "." + new TAB_inputs().getName(), new TAB_inputs().getCOL_db_id().getName(), this.db_id
-        );
-        QueryResult queryResult = QueryResult.getQueryResultObj(selectInputs,connection);
-        return String.valueOf(queryResult.safeGetRow("col1", 0));
+//        Connection connection = DriverManager.getConnection(getJdbcUrl(),getJdbcUser(),getJdbcPassword());
+//        String selectInputs = String.format("""
+//                SELECT
+//                    %s
+//                from %s
+//                where %s = '%s'
+//
+//
+//                """, new BlankInputTableTemplate().getCOL_value().getName(), new BlankInputTableTemplate().getMaName() + "." + new BlankInputTableTemplate().getName(), new BlankInputTableTemplate().getCOL_db_id().getName(), this.db_id
+//        );
+//        QueryResult queryResult = QueryResult.getQueryResultObj(selectInputs,connection);
+//        return String.valueOf(queryResult.safeGetRow("col1", 0));
+        return null;
     }
 
 

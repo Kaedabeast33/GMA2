@@ -6,9 +6,7 @@ import org.example.JsonBuilder.json.ma.tables.TableJson;
 import org.example.bank.commonValues.Identifier;
 import org.example.bank.db.contextObj.match.JsonInterface;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 
 public class MAJson implements JsonInterface {
@@ -196,5 +194,10 @@ public class MAJson implements JsonInterface {
     @Override
     public String toString() {
         return "MAJson{name=" + name + '}';
+    }
+
+    public List<TableJson> getTableByType(String type) {
+        if(tables ==null) return null;
+        return Arrays.stream(tables).filter(t-> Objects.equals(t.getTableType(), type)).toList();
     }
 }

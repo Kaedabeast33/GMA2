@@ -1,4 +1,5 @@
-package org.example.ai;
+package org.example.ai.registry;
 
 public class EmbedRegistry {
+
 }

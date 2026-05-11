@@ -37,6 +37,7 @@ public final class MultiFormatTimestampFormatter {
      * Date-only inputs return start-of-day.
      */
     public static Timestamp parseDateAndTime(String input) {
+//        System.out.println(input+" is being parsed by MultiFormatTimestampFormatter");
         if (input == null) return null;
         String s = input.trim();
         if (s.isEmpty()) return null;
@@ -54,7 +55,7 @@ public final class MultiFormatTimestampFormatter {
     }
 
     public static Timestamp parseToTimestamp(String input) {
-        if (input == null) return null;
+        if (input == null|| input.equals("null")) return null;
         String s = input.trim();
         if (s.isEmpty()) return null;
 

@@ -1,6 +1,8 @@
 package org.example.bank.OutputClassBank;
 
-import org.example.ClassOutputCreator.templates.AirColumnTemplate;
+
+
+import org.example.ClassOutputCreator.templates.airtable.AirColumnTemplate;
 
 import java.util.List;
 

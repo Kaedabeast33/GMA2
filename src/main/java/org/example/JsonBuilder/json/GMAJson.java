@@ -4,6 +4,11 @@ import org.example.ClassOutputCreator.templates.KdbGma;
 import org.example.JsonBuilder.json.ma.AiMAJson;
 import org.example.JsonBuilder.json.ma.AirMAJson;
 import org.example.JsonBuilder.json.ma.MAJson;
+
+import org.example.JsonBuilder.json.ma.tables.TableJson;
+import org.example.JsonBuilder.json.ma.tables.columns.AiColumnJson;
+import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
+import org.example.bank.commonValues.Identifier;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -56,6 +61,97 @@ public class GMAJson {
 
     public GMAJson() {
     }
+
+
+    public <T> T getGmaObject(Identifier id, Class<T> type) {
+        if (id.getMaName() == null) return null;
+
+        MAJson idMa = ma.stream()
+                .filter(m -> m.getName().equals(id.getMaName()))
+                .findFirst()
+                .orElse(null);
+        System.out.println("Looking for MA with name: " + id.getMaName() + ", found: " + (idMa != null ? idMa.getName() : "null"));
+
+        if (idMa == null) return null;
+
+        // If caller wants MAJson
+        if (type == MAJson.class) {
+            return type.cast(idMa);
+        }
+
+        if (id.getTableName() == null) return null;
+
+        Arrays.stream(idMa.getTables()).forEach(t-> System.out.println("MA " + idMa.getName() + " has table: " + t.getName()));
+        TableJson idTable = Arrays.stream(idMa.getTables())
+                .filter(t -> t.getName().equals(id.getTableName()))
+                .findFirst()
+                .orElse(null);
+
+        if (idTable == null) return null;
+
+        // If caller wants TableJson
+        if (type == TableJson.class) {
+            return type.cast(idTable);
+        }
+
+        if (id.getColumnName() == null) return null;
+
+        ColumnJson idColumn = Arrays.stream(idTable.getColumns())
+                .filter(c -> c.getName().equals(id.getColumnName()))
+                .findFirst()
+                .orElse(null);
+
+        // If caller wants ColumnJson
+        if (type == ColumnJson.class) {
+            return type.cast(idColumn);
+        }
+
+        return null;
+    }
+
+//    public <T> T getGmaObjectAi(Identifier id, Class<T> type) {
+//        if (id.getMaName() == null) return null;
+//
+//        AiMAJson idMa = aiMa.stream()
+//                .filter(m -> m.getName().equals(id.getMaName()))
+//                .findFirst()
+//                .orElse(null);
+//
+//        if (idMa == null) return null;
+//
+//        // If caller wants MAJson
+//        if (type == AiMAJson.class) {
+//            return type.cast(idMa);
+//        }
+//
+//        if (id.getTableName() == null) return null;
+//
+//        AiTableJson idTable = Arrays.stream(idMa.getTables())
+//                .filter(t -> t.getName().equals(id.getTableName()))
+//                .findFirst()
+//                .orElse(null);
+//
+//        if (idTable == null) return null;
+//
+//        // If caller wants TableJson
+//        if (type == AiTableJson.class) {
+//            return type.cast(idTable);
+//        }
+//
+//        if (id.getColumnName() == null) return null;
+//
+//        AiColumnJson idColumn = Arrays.stream(idTable.getColumns())
+//                .filter(c -> c.getName().equals(id.getColumnName()))
+//                .findFirst()
+//                .orElse(null);
+//
+//        // If caller wants ColumnJson
+//        if (type == ColumnJson.class) {
+//            return type.cast(idColumn);
+//        }
+//
+//        return null;
+//    }
 
     //    public GMAJson(KdbGmaDb gma){
 //

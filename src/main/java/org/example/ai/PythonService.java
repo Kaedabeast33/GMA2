@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.ai;
 
 import com.google.gson.Gson;
 
@@ -13,17 +13,17 @@ import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Service
 public class PythonService {
 
+
+
     private final ExecutorService llmExecutor = Executors.newCachedThreadPool();
-    public boolean checkConnection() throws IOException {
-        String url = "http://localhost:5000";
+    public static boolean checkConnection() throws IOException {
+        String url = AppConfig.getPyServerUrl();
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
@@ -43,6 +43,125 @@ public class PythonService {
         return true;
     }
 
+
+
+    public static AiRagSchemaJson dbSkeletonUpload(List<File> files, String uploadGroup, String mimeType,String fullName) throws IOException {
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("no files to upload");
+        }
+
+        String url = AppConfig.getPyServerUrl() + "/db_skeleton_upload";
+        System.out.println(url);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(600, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(300, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(300, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+
+        MultipartBody.Builder multipartBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+
+
+
+
+
+
+        try {
+            for (File mf : files) {
+
+                MediaType mediaType = MediaType.parse(mimeType);
+
+                // create RequestBody from bytes (avoid calling transferTo on DTO)
+                RequestBody fileBody = RequestBody.create(Files.readAllBytes(mf.toPath()), mediaType != null ? mediaType : MediaType.parse("application/octet-stream"));
+
+                // IMPORTANT: use exact field name expected by FastAPI: 'files'
+                multipartBuilder.addFormDataPart("files", mf.getName(), fileBody);
+
+            }
+
+            multipartBuilder.addFormDataPart("uploadGroup", uploadGroup);
+            multipartBuilder.addFormDataPart("schema_name", fullName);
+
+            RequestBody requestBody = multipartBuilder.build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(requestBody)
+                    .addHeader("Accept", "application/json")
+                    .build();
+
+            Gson gson = new Gson();
+
+            try (Response response = client.newCall(request).execute()) {
+                String respBody = response.body() != null ? response.body().string() : "";
+
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response.code() + " body=" + respBody);
+                }
+
+                System.out.println("Response: " + respBody);
+                return gson.fromJson(respBody, AiRagSchemaJson.class);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("Failed to upload files to embedding service", e);
+        }
+    }
+
+
+    public static AiRagSchemaJson parseFile(List<File> files, String uploadGroup, String promptText, String mimeType) throws IOException {
+        // Validate required parameters early to avoid remote 422 errors and make debugging clearer
+
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("no files to upload");
+        }
+
+
+        String url = AppConfig.getPyServerUrl()+"/parse_file_group";
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(600, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(700, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(600, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+
+        MultipartBody.Builder multipartBuilder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+
+        for (File file : files) {
+            String filename = file.getName();
+
+            MediaType mediaType = MediaType.parse(mimeType);
+            RequestBody fileBody = RequestBody.create(Files.readAllBytes(file.toPath()), mediaType != null ? mediaType : MediaType.parse("application/octet-stream"));
+
+            multipartBuilder.addFormDataPart("files", filename, fileBody);
+        }
+        multipartBuilder.addFormDataPart("prompt_text",promptText);
+        multipartBuilder.addFormDataPart("uploadGroup", uploadGroup == null ? "" : uploadGroup);
+
+
+        RequestBody requestBody = multipartBuilder.build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .addHeader("Accept", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String respBody = response.body() != null ? response.body().string() : "";
+            System.out.println("parseFile response code: " + response.code());
+            System.out.println("parseFile response body: " + respBody);
+            if (!response.isSuccessful()) {
+                System.err.println("Vyta upload failed: code=" + response.code() + " body=" + respBody);
+                throw new IOException("Unexpected code " + response.code() + " " + response.message() + " body=" + respBody);
+            }
+                return  new Gson().fromJson(respBody, AiRagSchemaJson.class);
+
+        }
+
+    }
 
     // java
     public static Double[] makeEmbeddingFile(File file, String fileType) throws IOException {

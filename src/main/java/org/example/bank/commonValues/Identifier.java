@@ -1,5 +1,7 @@
 package org.example.bank.commonValues;
 
+import org.example.JsonBuilder.json.ma.AiMAJson;
+
 public class Identifier {
     String gmaName;
     String maName;
@@ -18,6 +20,9 @@ public class Identifier {
         this.tableName = identifier.getTableName();
         this.columnName = identifier.getColumnName();
 
+    }
+
+    public Identifier(AiMAJson aiMAJson) {
     }
 
     public String getColumnName() {
@@ -55,5 +60,16 @@ public class Identifier {
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Identifier{" +
+                "gmaName='" + gmaName + '\'' +
+                ", maName='" + maName + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", columnName='" + columnName + '\'' +
+                '}';
     }
 }

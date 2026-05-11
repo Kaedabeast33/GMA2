@@ -76,7 +76,7 @@ public class TableClassCreator {
         }
 
 
-        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}), List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson", "bank.OutputClassBank.QueryResult"}), List.of(new String[]{"bank.OutputClassBank.KdbColumnWrapper.safeGetValue"}), path, false);
+        generatePackageDeclaration(pkgDir, childDirQuery, List.of(new String[]{"TableTemplate", "QueryTemplate", "ColumnTemplate"}), List.of(new String[]{"JsonBuilder.json.ma.tables.columns.ColumnJson", "bank.OutputClassBank.QueryResult","bank.OutputClassBank.KdbColumnPersona"}), List.of(new String[]{"bank.OutputClassBank.KdbColumnWrapper.safeGetValue"}), path, false);
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{}), path, true);
         generateTabImports(path);
         generateContextImport(path);
@@ -96,14 +96,18 @@ public class TableClassCreator {
     static public void generateContextImport(Path path) {
         StringBuilder packagePath = new StringBuilder(javaDir);
         StringBuilder packagePath2 = new StringBuilder(javaDir);
+        StringBuilder packagePath3 = new StringBuilder(javaDir);
 
 
         packagePath.append(resourceDir).append("KDBContext;\n");
+        packagePath3.append(resourceDir).append("KdbContextAi;\n");
+
         packagePath2.append(resourceDir).append("KdbColumnPersona;\n\n");
 
 
         String importStatement = String.format("import %s", packagePath.toString());
         importStatement += String.format("import %s", packagePath2.toString());
+        importStatement += String.format("import %s", packagePath3.toString());
         try {
             Files.writeString(path, importStatement, StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -132,13 +136,13 @@ public class TableClassCreator {
     private void generateQueryMethods(Path path) {
         String getQueryByCol = """
                     @Override
-                    public QueryResult getQueryByCols(List<ColumnTemplate> byColumns,
+                    public QueryResult getQueryByCols(List<KdbColumnPersona> byColumns,
                                                       EntityManager entityManager) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(), this.getMaName(), this.getName(), byColumns, entityManager);
                     }
                 
                     @Override
-                    public QueryResult getQueryByCols(List<ColumnTemplate> byColumns,
+                    public QueryResult getQueryByCols(List<KdbColumnPersona> byColumns,
                                                       List<KdbColumnPersona> getColumns,
                                                       EntityManager entityManager) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(), this.getMaName(), this.getName(), byColumns, getColumns, entityManager);
@@ -153,12 +157,12 @@ public class TableClassCreator {
                     
                 
                     @Override
-                    public QueryResult getQueryByCols(List<ColumnTemplate> byColumns) throws SQLException {
+                    public QueryResult getQueryByCols(List<KdbColumnPersona> byColumns) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(), this.getMaName(), this.getName(), byColumns);
                     }
                 
                     @Override
-                    public QueryResult getQueryByCols(List<ColumnTemplate> byColumns,
+                    public QueryResult getQueryByCols(List<KdbColumnPersona> byColumns,
                                                       List<KdbColumnPersona> getColumns) throws SQLException {
                         return context.getQueryByColumns(this.getGmaName(), this.getMaName(), this.getName(), byColumns, getColumns);
                     }

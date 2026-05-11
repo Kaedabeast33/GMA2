@@ -1,8 +1,10 @@
 
-package org.example.bank.ai;
+package org.example.ai;
 
 
-import org.example.APP.schemas.vyta.client_med.inputs.TAB_inputs;
+
+//import org.example.ClassOutputCreator.templates.ai.blanks.BlankInputTableTemplate;
+
 import org.example.bank.OutputClassBank.QueryResult;
 
 import java.sql.Connection;
@@ -37,28 +39,28 @@ public class VectorQueryResultWrapper {
 
 
 
-    public  List<String> getInputValuesDbIds(double confidenceThreshold,String table) throws SQLException {
-        Connection connection = DriverManager.getConnection(getJdbcUrl(),getJdbcUser(),getJdbcPassword());
-        List<String> values = new ArrayList<>();
-        String selectInputs = String.format("""
-                SELECT
-                    %s
-                from %s
-                where %s IN ('%s')
-
-
-                """, new TAB_inputs().getCOL_value().getName(),table, new TAB_inputs().getCOL_db_id().getName(), String.join("','", extractDbIds(confidenceThreshold))
-        );
-        QueryResult queryResult = QueryResult.getQueryResultObj(selectInputs,connection);
-        for(int i = 0; i < queryResult.getResultSize(); i++) {
-            System.out.println(queryResult.safeGetRow("col1", i)+" is the value for col1 at index "+i);
-            values.add(String.valueOf(queryResult.safeGetRow("col1", i)));
-        }
-
-
-
-        return values;
-    }
+//    public  List<String> getInputValuesDbIds(double confidenceThreshold,String table) throws SQLException {
+//        Connection connection = DriverManager.getConnection(getJdbcUrl(),getJdbcUser(),getJdbcPassword());
+//        List<String> values = new ArrayList<>();
+//        String selectInputs = String.format("""
+//                SELECT
+//                    %s
+//                from %s
+//                where %s IN ('%s')
+//
+//
+//                """, new BlankInputTableTemplate().getCOL_value().getName(),table, new BlankInputTableTemplate().getCOL_db_id().getName(), String.join("','", extractDbIds(confidenceThreshold))
+//        );
+//        QueryResult queryResult = QueryResult.getQueryResultObj(selectInputs,connection);
+//        for(int i = 0; i < queryResult.getResultSize(); i++) {
+//            System.out.println(queryResult.safeGetRow("col1", i)+" is the value for col1 at index "+i);
+//            values.add(String.valueOf(queryResult.safeGetRow("col1", i)));
+//        }
+//
+//
+//
+//        return values;
+//    }
 
 
     public List<VectorQueryResult> getList() {

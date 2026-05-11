@@ -1,9 +1,10 @@
 package org.example.ClassOutputCreator.templates;
 
 import org.example.bank.OutputClassBank.EntityInterface;
+import org.example.bank.OutputClassBank.SaveInterface;
 
 
-public abstract class TableTemplate implements EntityInterface {
+public abstract class TableTemplate implements EntityInterface, SaveInterface {
     protected final String name;
     protected final String description;
     protected final String[] tag;

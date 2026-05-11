@@ -1,5 +1,7 @@
 package org.example.bank.OutputClassBank;
 
+import java.util.List;
+
 public interface KdbColumnPersona {
 
 
@@ -22,6 +24,8 @@ public interface KdbColumnPersona {
         boolean isIndex();
 
         boolean isPrimaryKey();
+
+        List<String> getQueryMatchStrings();
 
 
 

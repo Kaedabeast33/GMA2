@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.bank.commonMethods;
 
 import com.google.gson.*;
 
