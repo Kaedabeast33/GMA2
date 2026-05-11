@@ -70,7 +70,7 @@ public class AiMAClassCreator {
         generatePackageDeclaration(pkgDir, childDirs, List.of(new String[]{"ai.AiMATemplate", "ai.AiColumnTemplate"}), path, false);
         generatePomImports(path,List.of("java.text.ParseException","java.util.List","org.springframework.stereotype.Component","java.io.File;","jakarta.persistence.EntityManager","java.util.concurrent.ExecutionException"));
         generateBankImports(path, List.of("AiTableInterface","KdbAiColumnPersona"));
-        generateAiImports(path,List.of("AiRagSchemaJson"));
+        generateAiImports(path,List.of("AiRagSchemaParse","AiRagSchemaJson"));
         generateContextImport(path);
         generateAiMaFields(ma,  path);
         generateAiMaCols(ma, path);
@@ -98,11 +98,15 @@ public class AiMAClassCreator {
     private void generateAiMaRagUpload(AiMAJson ma, Path path) {
         String initial;
         initial = """
-                public void reloadRag( List<File> files, AiRagSchemaJson json, String uploadGroup,EntityManager entityManager) throws Exception {
+                public void reloadRag( List<File> files, AiRagSchemaParse json, String uploadGroup,EntityManager entityManager) throws Exception {
                              contextAi.reloadRag(this, files, json, uploadGroup,entityManager);
                         }
                         
-                public void addDbSkeleton(List<File> files, AiRagSchemaJson json, String uploadGroup,  EntityManager entityManager)  {
+                public void reloadRag( List<File> files, String uploadGroup,EntityManager entityManager) throws Exception {
+                             contextAi.reloadRag(this, files, uploadGroup,entityManager);
+                        }
+                        
+                public void addDbSkeleton(List<File> files, AiRagSchemaParse json, String uploadGroup,  EntityManager entityManager)  {
                                 contextAi.addDbSkeleton(this, files,json, uploadGroup , entityManager);
                         }        
                         

@@ -16,6 +16,7 @@ import org.example.JsonBuilder.json.ma.tables.columns.ColumnJson;
 import org.example.ai.AiRagSchemaJson;
 //import org.example.ai.VectorQueryResultWrapper;
 
+import org.example.ai.AiRagSchemaParse;
 import org.example.ai.PromptForJsonSchema;
 import org.example.ai.bank.ParseValue;
 import org.example.ai.registry.parse.ParseFileMethod;
@@ -1015,6 +1016,18 @@ public enum KdbContextAi {
 
     }
 
+    public AiRagSchemaParse parseFile(AiMATemplate aiMATemplate, List<File> files, String uploadGroup,EntityManager entityManager) throws Exception {
+        String mimeType = getMimeType(files);
+
+        if (!Objects.equals(mimeType, "application/pdf") && !Objects.equals(mimeType, "text/plain")){
+            throw new RuntimeException("Only PDF files are currently supported for upload. Detected mime type: "+getMimeType(files));
+        }
+        AiRagSchemaParse jsonP = aiMATemplate.parseFileMethod().runParseFile(files,uploadGroup,getRagSchemaTree(aiMATemplate, uploadGroup, entityManager)).get();
+
+        System.out.println(gson.toJson(jsonP));
+        return jsonP;
+    }
+
 
 
 
@@ -1024,7 +1037,7 @@ public enum KdbContextAi {
     public ParseFileMethod.UploadGroupTree getRagSchemaTree(AiMATemplate aiMATemplate, String uploadGroup, EntityManager entityManager) throws Exception {
         String baseQuery = String.format("""
         SELECT
-          `pg`.`db_id` AS `db_id`,
+          
           `pg`.`upload_group` AS `upload_group`,
           `pg`.`description` AS `upload_group_description`,
 
@@ -1038,7 +1051,8 @@ public enum KdbContextAi {
           `n`.`description` AS `input_name_description`,
 
           `v`.`input_value` AS `input_value`,
-          `v`.`description` AS `input_value_description`
+          `v`.`description` AS `input_value_description`,
+          `pg`.`db_id` AS `db_id`
 
         FROM `%s`.`%s` `pg`
 
@@ -1143,7 +1157,7 @@ public enum KdbContextAi {
 
 
 
-    public void reloadRag(AiMATemplate aiMATemplate, List<File> files, AiRagSchemaJson json, String uploadGroup, EntityManager entityManager) throws Exception {
+    public void reloadRag(AiMATemplate aiMATemplate, List<File> files, AiRagSchemaParse json, String uploadGroup, EntityManager entityManager) throws Exception {
         //        @TODO maTemplate from the gma ma name... will have columns annotated with primary key and key. Primary key is neccessary for the query and so is neccessary for the upload to inputs, primary keys then  keys will be put into the storage file system.
         //        @TODO An error will signal if ay of the keys are blank or null and the upload will fail. This is to ensure that the data is queryable and usable for the ai.
 
@@ -1175,7 +1189,41 @@ public enum KdbContextAi {
         }
     }
 
-    private void reloadRaw(AiMATemplate rawMa, List<File> tempFiles, AiRagSchemaJson json,String uploadGroup,String fileId, EntityManager entityManager) throws Exception {
+    public void reloadRag(AiMATemplate aiMATemplate, List<File> files,  String uploadGroup, EntityManager entityManager) throws Exception {
+        //        @TODO maTemplate from the gma ma name... will have columns annotated with primary key and key. Primary key is neccessary for the query and so is neccessary for the upload to inputs, primary keys then  keys will be put into the storage file system.
+        //        @TODO An error will signal if ay of the keys are blank or null and the upload will fail. This is to ensure that the data is queryable and usable for the ai.
+
+        AiRagSchemaParse parse = parseFile(aiMATemplate, files, uploadGroup, entityManager);
+
+        String fileId = UUID.randomUUID().toString();
+//        System.out.println("here2");
+//
+
+        if(!aiMATemplate.checkKeys()) throw new RuntimeException("Missing key values for ma: "+aiMATemplate.getName());
+
+        for (int i = 0; i < aiMATemplate.getTypes().length; i++) {
+
+
+//            System.out.println("Processing type: "+aiMATemplate.getTypes()[i]);
+            if (aiMATemplate.getTypes()[i].matches(".*raw")) {
+                reloadRaw(aiMATemplate,files, parse,uploadGroup, fileId,entityManager);
+            }
+            if (aiMATemplate.getTypes()[i].matches(".*inputs") && !aiMATemplate.getTypes()[i].matches(".*raw")) {
+
+                reloadInputs(aiMATemplate, parse,uploadGroup, fileId,entityManager);
+            }
+            if (aiMATemplate.getTypes()[i].matches(".*raw_inputs")) {
+                reloadRawInputs(aiMATemplate,files,uploadGroup,fileId,entityManager);
+            }
+
+
+
+
+
+        }
+    }
+
+    private void reloadRaw(AiMATemplate rawMa, List<File> tempFiles, AiRagSchemaParse json,String uploadGroup,String fileId, EntityManager entityManager) throws Exception {
         AzureStorage azureStorage  = new AzureStorage();
 
         System.out.println("reload Raw");
@@ -1292,7 +1340,7 @@ public enum KdbContextAi {
 
     ;
 
-    private void reloadInputs(AiMATemplate rawMa,   AiRagSchemaJson json,String uploadGroup,String fileId,EntityManager entityManager) throws Exception {
+    private void reloadInputs(AiMATemplate rawMa,   AiRagSchemaParse json,String uploadGroup,String fileId,EntityManager entityManager) throws Exception {
         System.out.println("reload inputs");
 
 
@@ -1473,7 +1521,7 @@ public enum KdbContextAi {
 
     }
 
-    private List<InputJson> buildInputsFromRaw(AiMATemplate aiMATemplate, AiRagSchemaJson jsonSchema) throws SQLException {
+    private List<InputJson> buildInputsFromRaw(AiMATemplate aiMATemplate, AiRagSchemaParse jsonSchema) throws SQLException {
 
 //        AiRagSchemaJson jsonSchema = gson.fromJson(json, AiRagSchemaJson.class);
         List<InputJson> inputJsons = new ArrayList<>();
@@ -1484,10 +1532,11 @@ public enum KdbContextAi {
         Map<String, List<String>> inputValueMap = new HashMap<>();
 
         // Build inputs and maps (assign a UUID to each InputJson)
-        for (AiRagSchemaJson.Group group : jsonSchema.getGroups()) {
-            for (AiRagSchemaJson.TypeEntry type : group.getTypes()) {
-                for (AiRagSchemaJson.NameEntry input : type.getNames()) {
-                    for (AiRagSchemaJson.ValueWrapper value : input.getValues()) {
+        for (AiRagSchemaParse.Group group : jsonSchema.getGroups()) {
+            for (AiRagSchemaParse.TypeEntry type : group.getTypes()) {
+                for (AiRagSchemaParse.NameEntry input : type.getNames()) {
+                    for (AiRagSchemaParse.ValueWrapper value : input.getValues()) {
+                        AiRagSchemaJson.ValueWrapper valueJson = gson.fromJson(gson.toJson(value), AiRagSchemaJson.ValueWrapper.class);
                         if(value.getValue()==null||value.getValue().getValue()==null){
                             continue; // skip if value or value name is null
                         }
@@ -1507,7 +1556,7 @@ public enum KdbContextAi {
                         inputJson.setValueName(value.getValue().getName());
 
                         // leave inputNameDescription blank for now
-                        inputJson.setValue(value);
+                        inputJson.setValue(valueJson);
 
                         inputJsons.add(inputJson);
 

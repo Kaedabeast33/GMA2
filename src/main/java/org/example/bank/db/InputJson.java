@@ -1,6 +1,8 @@
 package org.example.bank.db;
 
+
 import org.example.ai.AiRagSchemaJson;
+import org.example.ai.AiRagSchemaParse;
 
 
 public class InputJson {

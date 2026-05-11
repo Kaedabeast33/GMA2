@@ -110,15 +110,13 @@ public class PythonService {
     }
 
 
-    public static AiRagSchemaJson parseFile(List<File> files, String uploadGroup, String promptText, String mimeType) throws IOException {
-        // Validate required parameters early to avoid remote 422 errors and make debugging clearer
-
+    public static AiRagSchemaParse parseFile(List<File> files, String uploadGroup, String promptText, String mimeType) throws IOException {
+        Gson gson = new Gson();
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("no files to upload");
         }
 
-
-        String url = AppConfig.getPyServerUrl()+"/parse_file_group";
+        String url = AppConfig.getPyServerUrl() + "/parse_file_group";
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(600, java.util.concurrent.TimeUnit.SECONDS)
@@ -129,17 +127,22 @@ public class PythonService {
         MultipartBody.Builder multipartBuilder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM);
 
+        // Ensure mimeType is never null when passed to MediaType.parse
+        String effectiveMime = (mimeType == null || mimeType.isBlank()) ? "application/octet-stream" : mimeType;
+
         for (File file : files) {
             String filename = file.getName();
 
-            MediaType mediaType = MediaType.parse(mimeType);
+            MediaType mediaType = MediaType.parse(effectiveMime);
             RequestBody fileBody = RequestBody.create(Files.readAllBytes(file.toPath()), mediaType != null ? mediaType : MediaType.parse("application/octet-stream"));
 
             multipartBuilder.addFormDataPart("files", filename, fileBody);
         }
-        multipartBuilder.addFormDataPart("prompt_text",promptText);
-        multipartBuilder.addFormDataPart("uploadGroup", uploadGroup == null ? "" : uploadGroup);
 
+        System.out.println(promptText+"promptText");
+        System.out.println(uploadGroup+"uploadGroup");
+        multipartBuilder.addFormDataPart("promptText", promptText);
+        multipartBuilder.addFormDataPart("uploadGroup", uploadGroup == null ? "" : uploadGroup);
 
         RequestBody requestBody = multipartBuilder.build();
 
@@ -151,16 +154,26 @@ public class PythonService {
 
         try (Response response = client.newCall(request).execute()) {
             String respBody = response.body() != null ? response.body().string() : "";
+            if (respBody.startsWith("\"") && respBody.endsWith("\"")) {
+                try {
+                    respBody = gson.fromJson(respBody, String.class);
+                    System.out.println("Unquoted inner JSON payload length: " + (respBody == null ? 0 : respBody.length()));
+                } catch (Exception e) {
+                    System.err.println("Failed to unquote JSON string response: " + e.getMessage());
+                    throw new IOException("Invalid JSON string response", e);
+                }
+            }
             System.out.println("parseFile response code: " + response.code());
             System.out.println("parseFile response body: " + respBody);
             if (!response.isSuccessful()) {
                 System.err.println("Vyta upload failed: code=" + response.code() + " body=" + respBody);
                 throw new IOException("Unexpected code " + response.code() + " " + response.message() + " body=" + respBody);
             }
-                return  new Gson().fromJson(respBody, AiRagSchemaJson.class);
-
+            return new Gson().fromJson(respBody, AiRagSchemaParse.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to parse files with embedding service", e);
         }
-
     }
 
     // java

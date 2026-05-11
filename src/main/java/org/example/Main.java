@@ -63,8 +63,8 @@ public class Main {
         Actions actions = context.getBean(Actions.class);
 
         actions.buildGmaContext();
-        actions.mainRun();
-//
+//        actions.mainRun();
+
         TestService service= context.getBean(TestService.class);
         service.test();
 

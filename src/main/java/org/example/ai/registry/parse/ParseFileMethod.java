@@ -2,7 +2,7 @@ package org.example.ai.registry.parse;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.example.ai.AiRagSchemaJson;
+import org.example.ai.AiRagSchemaParse;
 
 import java.io.File;
 import java.util.*;
@@ -12,11 +12,11 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 
 public abstract class ParseFileMethod {
-    private ConcurrentHashMap<String, Future<?>> taskQueue;
-    private ExecutorService executorService;
-    protected Function<ParseFileObject,AiRagSchemaJson> parseFileFunction;
+    final private ConcurrentHashMap<String, Future<?>> taskQueue;
+    private final ExecutorService executorService;
+    protected Function<ParseFileObject,AiRagSchemaParse> parseFileFunction;
 
-    protected ParseFileMethod(Function<ParseFileObject,AiRagSchemaJson> parseFileFunction){
+    protected ParseFileMethod(Function<ParseFileObject,AiRagSchemaParse> parseFileFunction){
         this.parseFileFunction = parseFileFunction;
         this.taskQueue = new ConcurrentHashMap<>();
         this.executorService = java.util.concurrent.Executors.newFixedThreadPool(1);
@@ -25,7 +25,7 @@ public abstract class ParseFileMethod {
 
 
 
-    public String runParseFile(List<File> files, String uploadGroup, UploadGroupTree uploadGroupTree) throws Exception {
+    public Future<AiRagSchemaParse> runParseFile(List<File> files, String uploadGroup, UploadGroupTree uploadGroupTree) throws Exception {
         String prompt = buildPrompt(uploadGroupTree);
         String uuid  = java.util.UUID.randomUUID().toString();
 
@@ -34,9 +34,9 @@ public abstract class ParseFileMethod {
         parseFileObject.setUploadGroup(uploadGroup);
         parseFileObject.setPrompt(prompt);
 
-        Future<String> future = executorService.submit(() -> parseFileFunction.apply(parseFileObject).toString());
+        Future<AiRagSchemaParse> future = executorService.submit(() -> parseFileFunction.apply(parseFileObject));
         taskQueue.put("parse_file_"+uuid, future);
-        return future.get();
+        return future;
     }
 
 
@@ -53,50 +53,51 @@ public abstract class ParseFileMethod {
         List<NameDescription> uploadNdList = new ArrayList<>();
 
         Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
-        List<AiRagSchemaJson> uploads = new ArrayList<>();
+        List<AiRagSchemaParse> uploads = new ArrayList<>();
 
         for (var uploadEntry : uploadGroupToInputs.entrySet()) {
             NameDescription uploadNd = uploadEntry.getKey();
             uploadNdList.add(uploadNd);
 
-            AiRagSchemaJson upload = new AiRagSchemaJson();
+            AiRagSchemaParse upload = new AiRagSchemaParse();
             upload.setUploadName(uploadNd == null ? null : uploadNd.getName());
+            System.out.println(upload.getUploadName());
 
-            List<AiRagSchemaJson.Group> groups = new ArrayList<>();
+            List<AiRagSchemaParse.Group> groups = new ArrayList<>();
             Map<NameDescription, Map<NameDescription, Map<NameDescription, List<NameDescription>>>> groupsMap = uploadEntry.getValue();
             if (groupsMap != null) {
                 for (var groupEntry : groupsMap.entrySet()) {
                     NameDescription groupNd = groupEntry.getKey();
                     nameDescriptionsList.add(groupNd);
-                    AiRagSchemaJson.Group group = new AiRagSchemaJson.Group();
+                    AiRagSchemaParse.Group group = new AiRagSchemaParse.Group();
                     group.setGroupName(groupNd == null ? null : groupNd.getName());
 
-                    List<AiRagSchemaJson.TypeEntry> types = new ArrayList<>();
+                    List<AiRagSchemaParse.TypeEntry> types = new ArrayList<>();
                     Map<NameDescription, Map<NameDescription, List<NameDescription>>> typesMap = groupEntry.getValue();
                     if (typesMap != null) {
                         for (var typeEntry : typesMap.entrySet()) {
                             NameDescription typeNd = typeEntry.getKey();
                             nameDescriptionsList.add(typeNd);
-                            AiRagSchemaJson.TypeEntry type = new AiRagSchemaJson.TypeEntry();
+                            AiRagSchemaParse.TypeEntry type = new AiRagSchemaParse.TypeEntry();
                             type.setTypeName(typeNd == null ? null : typeNd.getName());
 
-                            List<AiRagSchemaJson.NameEntry> names = new ArrayList<>();
+                            List<AiRagSchemaParse.NameEntry> names = new ArrayList<>();
                             Map<NameDescription, List<NameDescription>> nameToValues = typeEntry.getValue();
                             if (nameToValues != null) {
                                 for (var nameEntry : nameToValues.entrySet()) {
                                     NameDescription nameNd = nameEntry.getKey();
                                     nameDescriptionsList.add(nameNd);
                                     if (nameNd == null) continue;
-                                    AiRagSchemaJson.NameEntry ne = new AiRagSchemaJson.NameEntry();
+                                    AiRagSchemaParse.NameEntry ne = new AiRagSchemaParse.NameEntry();
                                     ne.setInputName(nameNd.getName());
 
                                     List<NameDescription> valueList = nameEntry.getValue();
-                                    List<AiRagSchemaJson.ValueWrapper> vals = new ArrayList<>();
+                                    List<AiRagSchemaParse.ValueWrapper> vals = new ArrayList<>();
                                     if (valueList != null) {
                                         for (NameDescription vnd : valueList) {
                                             if (vnd == null) continue;
-                                            AiRagSchemaJson.ValueWrapper pv = new AiRagSchemaJson.ValueWrapper();
-                                            AiRagSchemaJson.MeasurementValue mv = new AiRagSchemaJson.MeasurementValue();
+                                            AiRagSchemaParse.ValueWrapper pv = new AiRagSchemaParse.ValueWrapper();
+                                            AiRagSchemaParse.MeasurementValue mv = new AiRagSchemaParse.MeasurementValue();
                                             mv.setName(vnd.getName());
                                             pv.setValue(mv);
                                             vals.add(pv);

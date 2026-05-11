@@ -103,13 +103,13 @@ public class TestService {
 
 
 
-//        aima_client_med.setCol(aima_client_med.getK_report_date()
-//                .setEntityValue(
-//                        Timestamp.valueOf(LocalDate.now().atStartOfDay())
-//                ));
-//        aima_client_med.setCol(aima_client_med.getPk_people_id().setEntityValue("12345"));
-//        aima_client_med.setCol(aima_client_med.getAiCOL_measurement_date().setEntityValue(Timestamp.from(Instant.now())));
-//        aima_client_med.reloadRag(List.of(new File(file.toUri())), json, "client_med_upload_group",entityManager);
+        aima_client_med.setCol(aima_client_med.getK_report_date()
+                .setEntityValue(
+                        Timestamp.valueOf(LocalDate.now().atStartOfDay())
+                ));
+        aima_client_med.setCol(aima_client_med.getPk_people_id().setEntityValue("12345"));
+        aima_client_med.setCol(aima_client_med.getAiCOL_measurement_date().setEntityValue(Timestamp.from(Instant.now())));
+
 
 
 
@@ -119,6 +119,8 @@ public class TestService {
 
 //        System.out.println(jsonObj2);
 //        aima_client_med.addDbSkeleton(List.of(new File("/Users/kaedenbradshaw/Desktop/Summer/VitalsSummer.txt")),  "client_med_upload_group",entityManager);
+
+        kdbContextAi.reloadRag(aima_client_med, List.of(new File("/Users/kaedenbradshaw/Desktop/Summer/VitalsSummer.txt")), "client_med_upload_group",entityManager);
 
 
     }

@@ -9,6 +9,7 @@ import org.example.JsonBuilder.json.ma.MAJson;
 import org.example.ai.AiRagSchemaJson;
 import org.example.ai.registry.embed.EmbedMethod;
 import org.example.ai.registry.embed.MetaEmbed;
+import org.example.ai.registry.parse.ParseFileMethod;
 import org.example.ai.registry.skeleton.SkeletonUploadMethod;
 import org.example.bank.JsonBuilderRef.EntityValue;
 import org.example.bank.OutputClassBank.AiMaInterface;
@@ -24,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.example.ai.registry.embed.MetaEmbed.MAIN_EMBED;
+import static org.example.ai.registry.parse.MetaParseFile.MAIN_PARSE_FILE;
 import static org.example.ai.registry.skeleton.MetaSkeletonUpload.MAIN_SKELETON_UPLOAD;
 import static org.example.bank.AppConfig.getGmaName;
 import static org.example.bank.OutputClassBank.KdbColumnWrapper.safeGetValue;
@@ -51,6 +53,7 @@ public class AiMATemplate implements AiMaInterface {
     protected final String schema;
     EmbedMethod embedMethod = MAIN_EMBED.getEmbedMethod();
     SkeletonUploadMethod skeletonUploadMethod = MAIN_SKELETON_UPLOAD.getSkeletonUploadMethod();
+    ParseFileMethod parseFileMethod = MAIN_PARSE_FILE.getParseFileMethod();
 
     public AiMATemplate(String name, String custom, String description, String[] tag, String maId, List<AiColumnTemplate> keys, List<AiColumnTemplate> primaryKeys, List<AiColumnTemplate> cols, String[] types, String schema) {
         this.name = name;
@@ -66,6 +69,16 @@ public class AiMATemplate implements AiMaInterface {
         this.schema = schema;
     }
 
+
+    public EmbedMethod embedMethod(){
+        return embedMethod;
+    }
+    public SkeletonUploadMethod skeletonUploadMethod(){
+        return skeletonUploadMethod;
+    }
+    public ParseFileMethod parseFileMethod(){
+        return parseFileMethod;
+    }
 
 
     public void setCol(AiColumnTemplate template) throws Exception {
@@ -190,6 +203,7 @@ public class AiMATemplate implements AiMaInterface {
 
 
 private String buildName(String name) {
+
         return this.getName()+"_"+name;
 
 }
@@ -197,17 +211,28 @@ private String buildName(String name) {
     @Override
     public String getRawTableName() {
 
-        return buildName(UploadTypes.RAW);
+        return buildRawName(UploadTypes.RAW);
+    }
+
+    private String buildRawName(String raw) {
+        if(custom == null || custom.isEmpty()){
+            return raw;
+        }else{
+            return this.custom+raw;
+        }
     }
 
     @Override
     public String getInputsTableName() {
-        return buildName(UploadTypes.INPUTS);
+
+
+         return buildRawName(UploadTypes.INPUTS);
     }
 
     @Override
     public String getRawInputsTableName() {
-        return buildName(UploadTypes.RAW_INPUTS);
+
+        return buildRawName(UploadTypes.RAW_INPUTS);
     }
 
     @Override
